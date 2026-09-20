@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+.env
+.env.*
+model-advisor.json
+model-advisor-state/
+.DS_Store
+cost-estimate.json

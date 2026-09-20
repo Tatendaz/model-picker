@@ -1,0 +1,10 @@
+{
+  "enabled": true,
+  "endpoint": "https://api.typesafe.ai/v1/systemone",
+  "model": "jev-latest",
+  "api_key_env": "TYPESAFE_API_KEY",
+  "keychain_service": "jev-codex-api-key",
+  "max_prompt_chars": 6000,
+  "check_every": 4,
+  "cooldown_seconds": 900
+}

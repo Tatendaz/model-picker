@@ -1,0 +1,18 @@
+{
+  "name": "codex-model-advisor",
+  "version": "0.1.0",
+  "description": "JEV-powered model and effort recommendations before a Codex task. No automatic switching.",
+  "author": {
+    "name": "Tatenda Zhou"
+  },
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Model Picker",
+    "shortDescription": "Choose an appropriate model before starting work.",
+    "longDescription": "JEV-powered model and effort recommendations before a Codex task. No automatic switching.",
+    "developerName": "Tatenda Zhou",
+    "category": "Productivity",
+    "capabilities": [],
+    "defaultPrompt": "Help me use Model Picker to choose a Codex model and reasoning effort."
+  }
+}

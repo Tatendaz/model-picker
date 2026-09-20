@@ -1,0 +1,20 @@
+{
+  "name": "model-picker",
+  "interface": {
+    "displayName": "Model Picker"
+  },
+  "plugins": [
+    {
+      "name": "codex-model-advisor",
+      "source": {
+        "source": "local",
+        "path": "./plugins/codex-model-advisor"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_USE"
+      },
+      "category": "Productivity"
+    }
+  ]
+}
