@@ -160,6 +160,28 @@ class AdvisorTests(unittest.TestCase):
         self.assertNotIn("messages", json.loads(request.data))
         self.assertEqual(opener.open.call_args.kwargs["timeout"], 5)
 
+    def test_uncertain_recheck_reports_baseline_without_claiming_verdict(self):
+        with patch.object(a, "recommend", return_value=dict(a.DEFAULT, uncertain=True, reason="Unclear")):
+            self.assertEqual(a.run(self.event), {})
+            result = a.run(dict(self.event, prompt="model advisor recheck"))
+            self.assertIn("not a JEV recommendation", result["systemMessage"])
+            self.assertIn("uncertain result", result["hookSpecificOutput"]["additionalContext"])
+
+    def test_structured_request_respects_prompt_limit_without_mutating_input(self):
+        from unittest.mock import MagicMock
+        response = MagicMock()
+        response.__enter__.return_value.read.return_value = json.dumps({
+            "answers": {"route": {"type": "choice", "choice": "gpt-5.6-terra__medium", "confidence": 0.8}}
+        }).encode()
+        opener = MagicMock()
+        opener.open.return_value = response
+        original = {"prompt": "abcdef", "original_task": "keep this context"}
+        with patch.object(a, "credential", return_value="test-key"), patch.object(a.urllib.request, "build_opener", return_value=opener):
+            a.recommend(original, {"max_prompt_chars": 3})
+        state = json.loads(opener.open.call_args.args[0].data)["state"]
+        self.assertEqual(state, {"prompt": "abc", "original_task": "keep this context"})
+        self.assertEqual(original["prompt"], "abcdef")
+
     def test_typesafe_uncertain_and_invalid_choices(self):
         from unittest.mock import MagicMock
         for choice, confidence, valid in [("uncertain", 0.2, True), ("not-allowed", 0.9, False),
