@@ -27,9 +27,10 @@ Examples of unacceptable behavior:
 ## Enforcement
 
 Report abusive, harassing, or otherwise unacceptable behavior to the maintainer,
-[@Tatendaz](https://github.com/Tatendaz), in private: open an issue titled
-"Conduct contact request" with no details, and you will be invited to a private
-thread. Do not describe the incident in the public issue. All complaints will be
+[@Tatendaz](https://github.com/Tatendaz), in private: open a
+[Private contact request](https://github.com/Tatendaz/model-picker/issues/new?template=private_contact.yml)
+with the topic "Code of conduct" and no details, and you will be invited to a
+private thread. Do not describe the incident in the public issue. All complaints will be
 reviewed and investigated promptly and fairly.
 Maintainers who do not follow or enforce the Code of Conduct may be temporarily or
 permanently removed from the project.

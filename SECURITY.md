@@ -7,8 +7,10 @@ excerpts to TypeSafe. That trust surface gets a written policy.
 
 Do not open a public issue for a security problem. Use GitHub's private form:
 [Report a vulnerability](https://github.com/Tatendaz/model-picker/security/advisories/new).
-If that form is unavailable to you, open an issue titled "Security contact
-request" with no details, and you will be invited to a private thread.
+If that form is unavailable to you, open a
+[Private contact request](https://github.com/Tatendaz/model-picker/issues/new?template=private_contact.yml)
+with the topic "Security" and no details, and you will be invited to a private
+thread.
 
 Include the release tag or commit, your OS, the Codex client, what you did and
 what happened. Never include an API key, a real prompt, or a session state
