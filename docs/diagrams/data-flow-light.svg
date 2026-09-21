@@ -326,7 +326,7 @@ rect.c-bg-rect { fill: var(--bg); }
         <path data-edge-from="prompt" data-edge-to="hook" data-edge-label="prompt text" data-edge-key="0" data-composition-points="156,157;207.5,157;207.5,264;259,264" d="M 156 157 L 207.5 157 L 207.5 264 L 259 264" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
         <path data-edge-from="key" data-edge-to="hook" data-edge-label="credential" data-edge-key="1" data-composition-points="156,385;207.5,385;207.5,278;259,278" d="M 156 385 L 207.5 385 L 207.5 278 L 259 278" class="a-security" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
         <path data-edge-from="hook" data-edge-to="state" data-edge-label="excerpts + metadata" data-edge-key="2" data-composition-points="371,258;422.5,258;422.5,157;474,157" d="M 371 258 L 422.5 258 L 422.5 157 L 474 157" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
-        <path data-edge-from="hook" data-edge-to="jev" data-edge-label="bounded snapshot" data-edge-key="3" data-composition-points="371,284;422.5,284;422.5,385;474,385" d="M 371 284 L 422.5 284 L 422.5 385 L 474 385" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <path data-edge-from="hook" data-edge-to="jev" data-edge-label="snapshot + API key" data-edge-key="3" data-composition-points="371,284;422.5,284;422.5,385;474,385" d="M 371 284 L 422.5 284 L 422.5 385 L 474 385" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
         <path data-edge-from="hook" data-edge-to="chat" data-edge-label="model + effort" data-edge-key="4" data-composition-points="371,271;689,271" d="M 371 271 L 689 271" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
 
         <!-- Nodes -->
@@ -424,9 +424,9 @@ rect.c-bg-rect { fill: var(--bg); }
           <text x="422.5" y="197.5" class="t-muted" font-size="8" text-anchor="middle">excerpts + metadata</text>
         <text x="422.5" y="208.5" class="t-dim" font-size="7" text-anchor="middle">1,200 + 4 x 1,000 chars</text>
         </g>
-        <g data-edge-from="hook" data-edge-to="jev" data-edge-label="bounded snapshot" data-edge-key="3">
+        <g data-edge-from="hook" data-edge-to="jev" data-edge-label="snapshot + API key" data-edge-key="3">
           <rect x="369.95" y="313.5" width="105.1" height="27" rx="4" class="c-mask"/>
-          <text x="422.5" y="324.5" class="t-backend" font-size="8" text-anchor="middle">bounded snapshot</text>
+          <text x="422.5" y="324.5" class="t-backend" font-size="8" text-anchor="middle">snapshot + API key</text>
         <text x="422.5" y="335.5" class="t-dim" font-size="7" text-anchor="middle">HTTPS, no redirects</text>
         </g>
         <g data-edge-from="hook" data-edge-to="chat" data-edge-label="model + effort" data-edge-key="4">

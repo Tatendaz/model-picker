@@ -38,7 +38,7 @@ some of what the patterns miss.
 
 | Area | Status |
 |---|---|
-| Unit tests | Run in CI on Python 3.9 to 3.14, Linux and macOS |
+| Unit tests | Run in CI on Python 3.9 to 3.14 on Linux, and 3.9 and 3.14 on macOS |
 | Live TypeSafe request | Passed on 2026-09-19 with a synthetic summarization prompt |
 | Text escalation and chat callout | Checked by hand in Codex desktop and CLI on 2026-09-20 |
 | Voice handoff parsing | Covered by tests with synthetic events |

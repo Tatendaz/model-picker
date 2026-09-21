@@ -26,9 +26,11 @@ Examples of unacceptable behavior:
 
 ## Enforcement
 
-Instances of abusive, harassing, or otherwise unacceptable behavior may be reported to
-the maintainer, [@Tatendaz](https://github.com/Tatendaz), via a direct message or a
-private report. All complaints will be reviewed and investigated promptly and fairly.
+Report abusive, harassing, or otherwise unacceptable behavior to the maintainer,
+[@Tatendaz](https://github.com/Tatendaz), in private: open an issue titled
+"Conduct contact request" with no details, and you will be invited to a private
+thread. Do not describe the incident in the public issue. All complaints will be
+reviewed and investigated promptly and fairly.
 Maintainers who do not follow or enforce the Code of Conduct may be temporarily or
 permanently removed from the project.
 

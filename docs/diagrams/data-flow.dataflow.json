@@ -102,7 +102,7 @@
     {
       "from": "hook",
       "to": "jev",
-      "label": "bounded snapshot",
+      "label": "snapshot + API key",
       "classification": "HTTPS, no redirects",
       "variant": "emphasis"
     },

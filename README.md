@@ -81,7 +81,7 @@ the model you selected, so a suggestion applies to your next turn.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/diagrams/data-flow-dark.svg">
-  <img src="docs/diagrams/data-flow-light.svg" width="100%" alt="Data flow: your prompt and API key enter advisor.py. It writes bounded excerpts to local session state, sends a bounded snapshot over HTTPS to TypeSafe JEV, and shows only an allowlisted model and effort label in Codex chat.">
+  <img src="docs/diagrams/data-flow-light.svg" width="100%" alt="Data flow: your prompt and API key enter advisor.py. It writes bounded excerpts to local session state, sends a bounded snapshot with your API key over HTTPS to TypeSafe JEV, and shows only an allowlisted model and effort label in Codex chat.">
 </picture>
 
 - **Sent to `api.typesafe.ai` on each check, under your key:** the latest prompt

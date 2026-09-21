@@ -5,13 +5,14 @@ approach before you write code.
 
 ## Setup
 
-No install step. The plugin and its tests use only the Python standard
-library, and the tests never touch the network, Keychain or your real state
-directory.
+The plugin and its tests need no install step. They use only the Python
+standard library, and the tests never touch the network, Keychain or your real
+state directory. Linting needs Ruff, pinned to the version CI uses.
 
 ```sh
-make test   # python3 -m unittest discover -s plugins/codex-model-advisor/tests -v
-make lint   # needs ruff; CI pins ruff 0.14.2
+make test                                  # runs the unit tests
+python3 -m pip install 'ruff==0.14.2'      # once, for linting
+make lint
 ```
 
 ## Rules
