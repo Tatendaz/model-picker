@@ -1,55 +1,23 @@
-# Model Picker
+<div align="center">
 
-A recommendation-only Codex plugin. A session-aware command
-hook periodically asks a configured JEV endpoint which Codex model and effort suit the request.
-The recommendation is emitted as a hook warning and supplied to the assistant for a brief chat notice. You change the model yourself.
-The hook does not block the prompt: the first turn continues on your selected model.
-Recommendations therefore help you choose subsequent turns, or interrupt and resubmit.
-It does not claim to save the cost of the already-selected first turn.
+# 🔶 Model Picker
 
-## Requirements and setup
+**Codex model and effort suggestions that follow your task as it grows.**
 
-macOS or Linux, Python 3.9 or later, Codex with UserPromptSubmit hooks, and a TypeSafe API key. The built-in defaults use
-`https://api.typesafe.ai/v1/systemone` with `jev-latest`. No Python dependencies.
+A Codex plugin. When a task gets harder, it asks TypeSafe's JEV model which
+Codex model and reasoning effort fit the work, then shows the answer in chat.
+You make the switch. The plugin never changes a setting.
 
-1. Add the marketplace and install the plugin:
+[![CI](https://github.com/Tatendaz/model-picker/actions/workflows/ci.yml/badge.svg)](https://github.com/Tatendaz/model-picker/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-111111.svg)](LICENSE)
+[![Python: stdlib only](https://img.shields.io/badge/python-3.9%2B%20·%20zero%20deps-3776AB.svg)](plugins/codex-model-advisor/scripts/advisor.py)
+[![Codex plugin](https://img.shields.io/badge/Codex-plugin-10a37f.svg)](https://learn.chatgpt.com/docs/hooks)
 
-   ```sh
-   codex plugin marketplace add Tatendaz/model-picker
-   codex plugin add codex-model-advisor@model-picker
-   ```
+</div>
 
-   The display name is **Model Picker**. The stable plugin ID remains
-   `codex-model-advisor` for compatibility. Disable any older personal copy before
-   enabling this copy, so the hook does not run twice.
-2. Optionally copy `plugins/codex-model-advisor/config.example.json` to `~/.codex/model-advisor.json`
-   to override the defaults. No model or endpoint configuration is required.
-3. Supply `TYPESAFE_API_KEY` in the hook environment, or on macOS store the key in
-   Keychain under service `jev-codex-api-key` and your login account.
-4. Review and trust the plugin command through `/hooks` in Codex CLI.
-5. Start a new task. Look for the highlighted model recommendation when an upgrade is suggested.
-
-The TypeSafe API key is separate from your Codex subscription. Configure it only in
-your environment or Keychain, never in the repository. Native Windows is not
-supported because the state lock uses `fcntl`.
-
-Optional environment variables: `CODEX_ADVISOR_CONFIG` overrides the config path;
-`CODEX_ADVISOR_STATE_DIR` overrides the private state directory.
-
-Suggested Codex defaults in `~/.codex/config.toml`:
-
-```toml
-model = "gpt-5.6-terra"
-model_reasoning_effort = "medium"
-```
-
-Existing threads and explicit app/profile selections can override global defaults.
-The plugin never changes those settings itself.
-
-## Example
-
-A simple summary may stay on Terra without a notice. If the task grows into a
-multi-tenant architecture review, Model Picker may suggest a stronger model:
+A short summary stays on your current model with no notice. When the same
+session turns into a multi-tenant architecture review, you see this at the top
+of the reply:
 
 > # 🔶 Model recommendation
 >
@@ -59,127 +27,116 @@ multi-tenant architecture review, Model Picker may suggest a stronger model:
 >
 > Select it in the model picker if useful. **No settings were changed.**
 
-Send **model advisor recheck** for an immediate reassessment. This is a prompt
-phrase, not a terminal shell command. Recommendations are fallible and may vary.
+## Install
 
-## Behaviour
+You need macOS or Linux, Python 3.9 or later, Codex with plugin hooks, and a
+[TypeSafe](https://docs.typesafe.ai/api) API key. TypeSafe bills the key
+separately from your Codex plan.
 
-- Checks the first substantive prompt, new scope signals, and every four substantive prompts.
-- Skips acknowledgements and duplicates, with a 30-second minimum between checks.
-- Alerts for model or effort upgrades. If the current effort is unavailable, a high-effort recommendation is conditional and shown once per target, subject to cooldown.
-- Send `model advisor recheck` to reassess the last substantive request immediately and show the result. This explicit request bypasses cooldown and duplicate suppression.
-- Suppresses repeated targets and uses a 15-minute alert cooldown.
-- `/advisor mute` and `/advisor unmute` are recognized prompt phrases, not native slash commands.
-- `--force` explicitly requests a recommendation regardless of suppression.
-- Uses a five-second provider timeout and a ten-second hook timeout.
-- A provider failure on the first check or explicit recheck emits a baseline notice;
-  later automatic checks fail quietly. A fallback is not a task-specific JEV verdict.
-- Validates returned model/effort against a conservative allowlist. Configure
-  `allowed_models` to restrict this further to models your account actually offers.
-- Honors explicit model preferences in the classifier instructions, but recommendations
-  remain fallible. Your selection always controls execution.
-- State stores the initial prompt excerpt (1,200 characters), the latest four prompt
-  excerpts (1,000 characters each), and recommendation/suppression metadata. Files
-  have mode 0600 and use hashed session filenames. Context resets after 24 hours of
-  inactivity on the next invocation; files are not automatically deleted in idle sessions.
-- State stays outside the repository. Delete `~/.codex/model-advisor-state` to erase it.
-- No source files or full transcript are read. Concurrent invocations use a session lock.
+1. Add the marketplace and install the plugin:
 
-## Data sent to the provider
+   ```sh
+   codex plugin marketplace add Tatendaz/model-picker
+   codex plugin add codex-model-advisor@model-picker
+   ```
 
-Enabling the hook sends a bounded snapshot to TypeSafe on qualifying checks:
-the latest prompt (up to 3,000 characters), initial task excerpt, last four request
-excerpts, current model/effort when available, and prior recommendation. The routing
-rubric is fixed. Prompt text is private task data; provider retention follows TypeSafe's
-policies. Credentials are never logged. HTTP redirects are rejected.
+2. Give the hook your API key. Either export `TYPESAFE_API_KEY` in the
+   environment Codex runs in, or on macOS store it in Keychain:
 
-Snapshots remain outside Codex's model context. Qualifying alerts return a UI
-`systemMessage` plus bounded `additionalContext` containing allowlisted model and
-effort labels and a request to report them. Quiet checks return no output. The plugin cannot guarantee cache hits or cache
-reuse after a model switch. It never switches models or changes effort automatically.
+   ```sh
+   security add-generic-password -a "$USER" -s jev-codex-api-key -w
+   ```
 
-`check_every` (default 4) and `cooldown_seconds` (default 900) are configurable.
-Scope signals are heuristics and periodic checks can miss subtle or rapid changes.
-Alerts have been verified in Codex desktop and CLI. Rendering varies by client.
+3. Trust the hook. Open `/hooks` in the Codex CLI, review the
+   `codex-model-advisor@model-picker` UserPromptSubmit command, and trust it.
+   Installing the plugin does not do this for you.
 
-## Disable or uninstall
+4. Start a new task. The first real prompt triggers a check.
 
-Set `enabled` to `false` in the advisor config, disable this plugin in Codex, or
-uninstall it from the plugin UI. You may then remove the advisor config and state
-folder. The plugin never edits unrelated hooks or removes Keychain credentials.
+The plugin ID stays `codex-model-advisor` for compatibility; the display name
+is Model Picker. If you ran an older personal copy, disable it first so the
+hook does not run twice.
 
-## Development
+## Use it
+
+| Send this as a prompt | What happens |
+|---|---|
+| `model advisor recheck` | Reassesses your last request now and always shows the result. |
+| `/advisor mute` | Silences alerts for this session. |
+| `/advisor unmute` | Turns alerts back on. |
+
+These are phrases the hook reads, not native Codex slash commands.
+
+## How it works
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/diagrams/how-it-works-dark.svg">
+  <img src="docs/diagrams/how-it-works-light.svg" width="100%" alt="Sequence: you send a prompt; Codex passes the event to advisor.py; advisor.py reads session state and the API key, sends a bounded snapshot to TypeSafe JEV, saves the result, and returns a warning plus a chat callout. You switch models yourself.">
+</picture>
+
+The hook checks your first real prompt, any prompt that brings a new kind of
+scope (architecture, integration, migration, security, repeated failures), and
+every fourth prompt. It stays quiet for replies such as "ok", repeated prompts,
+prompts within 30 seconds of a check, and suggestions that are not an upgrade.
+Each suggestion is shown once, and never more than one alert per 15 minutes.
+
+The hook does not block your prompt. After the check (5-second provider
+timeout) the turn runs on the model you selected, so a suggestion applies to
+your next turn, or you can stop and resend.
+[docs/how-it-works.md](docs/how-it-works.md) has the full rules.
+
+## What leaves your machine
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/diagrams/data-flow-dark.svg">
+  <img src="docs/diagrams/data-flow-light.svg" width="100%" alt="Data flow: your prompt and API key enter advisor.py. It writes bounded excerpts to local session state, sends a bounded snapshot over HTTPS to TypeSafe JEV, and shows only an allowlisted model and effort label in Codex chat.">
+</picture>
+
+- **Sent to TypeSafe on each check:** your latest prompt (up to 3,000
+  characters), the first task excerpt, the last four requests, the current
+  model and effort, and the previous suggestion. It goes to `api.typesafe.ai`
+  under your key and TypeSafe's terms.
+- **Kept locally:** session files in `~/.codex/model-advisor-state`, mode
+  0600. Context resets after 24 hours idle; delete the folder to erase it.
+- **Never read:** your source files or the full transcript. No telemetry.
+- **Off switch:** set `"enabled": false` in `~/.codex/model-advisor.json`, or
+  disable the plugin.
+
+Details: [docs/privacy.md](docs/privacy.md).
+
+## Limits
+
+- It cannot switch models for you. Codex's `UserPromptSubmit` hook has no
+  output field that changes the model or effort. [Why](docs/limitations.md).
+- Native Windows is not supported; the state lock uses `fcntl`.
+- Suggestions come from a classifier and can be wrong. Your selection always
+  decides which model runs.
+
+## Documentation
+
+| Page | Covers |
+|---|---|
+| [How it works](docs/how-it-works.md) | When checks run, alert rules, the TypeSafe request, voice handoffs |
+| [Configuration](docs/configuration.md) | Config keys, environment variables, suggested Codex defaults |
+| [Privacy and trust](docs/privacy.md) | Data sent, local state, hook trust, credentials |
+| [Limitations](docs/limitations.md) | Automatic switching, what has been verified |
+| [Diagrams](docs/diagrams/README.md) | Diagram sources and how to regenerate them |
+| [Roadmap](ROADMAP.md) | Planned work |
+
+## Uninstall
+
+Disable or uninstall the plugin in Codex, then remove its local files:
 
 ```sh
-python3 -m unittest discover -s plugins/codex-model-advisor/tests -v
+rm -rf ~/.codex/model-advisor-state ~/.codex/model-advisor.json
+security delete-generic-password -s jev-codex-api-key   # macOS, if you used Keychain
 ```
 
-Tests cover fallback, once-per-session checks, manual rechecks, output validation,
-credential handling boundaries and private state. A live TypeSafe smoke test passed on 2026-09-19 using a synthetic summarization
-prompt and the Keychain credential. Text escalation and chat delivery were manually
-verified in desktop and CLI on 2026-09-20. Voice parsing has synthetic test coverage;
-live voice delivery remains unverified.
+The plugin never edits other hooks or your Codex config.
 
-## Open source
+## Contributing
 
-MIT licensed. Contributions are welcome. Credentials, personal usage reports, and
-private configuration stay outside the repository. This repository is a plugin
-marketplace source; it is not a listing in the official OpenAI plugin directory.
+`make test` runs the suite. It needs no network, key, or dependencies. See
+[CONTRIBUTING.md](CONTRIBUTING.md) and [SECURITY.md](SECURITY.md).
 
-See [ROADMAP.md](ROADMAP.md) for automatic routing plans and
-[CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidance.
-
-References: [Codex hooks](https://learn.chatgpt.com/docs/hooks),
-[App Server](https://learn.chatgpt.com/docs/app-server).
-
-## TypeSafe integration
-
-One Choice question selects a supported model/effort pair. The endpoint returns
-`answers.route.choice` and confidence. Explanations are local category descriptions,
-not generated JEV reasoning. Confidence describes distribution concentration, not
-proven correctness; no arbitrary confidence cutoff is imposed. An explicit uncertain
-choice uses the Terra/medium baseline. See [TypeSafe API](https://docs.typesafe.ai/api).
-
-## Voice handoffs and hook trust
-
-The advisor recognizes Codex `<realtime_delegation>` handoffs. It evaluates only
-`<input>`, ignoring duplicated transcript deltas and `transcript_tail_flush` events.
-Typed and spoken requests share one history and cooldown. It receives text handoffs,
-not raw audio; it cannot monitor speech that has not been handed to the agent.
-State includes `input_mode` and `last_status` for checking execution without extra logs.
-
-Installation and enablement do not grant hook trust. Open `/hooks` in the Codex CLI,
-review the `codex-model-advisor@model-picker` UserPromptSubmit command and trust it.
-This permits the reviewed script to read its Keychain credential, send bounded
-request excerpts to TypeSafe, and write private local advisor state. A changed hook
-definition may require a new review. Never bypass all hook trust to enable this plugin.
-
-Voice normalization is tested with synthetic handoff events. Actual voice dispatch
-still needs end-to-end verification.
-
-### Chat delivery
-
-Alerts emit both a hook warning and a short instruction for the assistant to report
-the allowlisted model and effort in a bold Markdown blockquote at the start of the reply. Suppressed checks add no model context.
-This replaces warning-only delivery, which was not visible in desktop testing.
-Alert turns add a small amount of context and may affect cache reuse.
-The manual skill reuses a completed hook result instead of making a second request.
-An emitted alert is not confirmation that the app displayed it.
-
-### Why automatic switching is unavailable
-
-This plugin only recommends a model and reasoning effort. Users change their
-selection manually in Codex desktop or CLI. There is no automatic-mode setting.
-
-The plugin runs through `UserPromptSubmit`. OpenAI documents context injection,
-messages, and prompt blocking for that hook, but no output field for changing the
-active model or reasoning effort. Therefore the documented hook interface does
-not provide the switching operation this plugin would need.
-See [OpenAI's UserPromptSubmit documentation](https://learn.chatgpt.com/docs/hooks#userpromptsubmit).
-
-This is a limitation of this hook-based integration, not a claim that automatic
-routing is impossible in all Codex integrations. A separate client controlling
-Codex App Server can select a model when starting a turn. That would require a
-different integration and is not implemented here. See
-[OpenAI's App Server lifecycle documentation](https://learn.chatgpt.com/docs/app-server#lifecycle-overview)
-and [the roadmap](ROADMAP.md).
+MIT © Tatenda Zhou. Not affiliated with OpenAI or TypeSafe.

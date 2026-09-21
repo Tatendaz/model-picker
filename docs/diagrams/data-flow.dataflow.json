@@ -1,0 +1,146 @@
+{
+  "schema_version": 1,
+  "diagram_type": "dataflow",
+  "meta": {
+    "title": "What Model Picker stores and sends",
+    "viewBox": [
+      960,
+      520
+    ],
+    "quality_profile": "showcase"
+  },
+  "stages": [
+    {
+      "label": "Inputs"
+    },
+    {
+      "label": "Hook"
+    },
+    {
+      "label": "Stored or sent"
+    },
+    {
+      "label": "Shown to you"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "prompt",
+      "type": "frontend",
+      "label": "Your prompt",
+      "sublabel": "typed or voice handoff",
+      "stage": 0,
+      "row": 0
+    },
+    {
+      "id": "key",
+      "type": "security",
+      "label": "API key",
+      "sublabel": "env or Keychain",
+      "stage": 0,
+      "row": 2
+    },
+    {
+      "id": "hook",
+      "type": "backend",
+      "label": "advisor.py",
+      "sublabel": "trims and filters",
+      "stage": 1,
+      "row": 1,
+      "tag": "stdlib only"
+    },
+    {
+      "id": "state",
+      "type": "database",
+      "label": "Session state",
+      "sublabel": "on your machine",
+      "stage": 2,
+      "row": 0,
+      "tag": "mode 0600"
+    },
+    {
+      "id": "jev",
+      "type": "cloud",
+      "label": "TypeSafe JEV",
+      "sublabel": "external API",
+      "stage": 2,
+      "row": 2,
+      "tag": "leaves your machine"
+    },
+    {
+      "id": "chat",
+      "type": "frontend",
+      "label": "Codex chat",
+      "sublabel": "warning + callout",
+      "stage": 3,
+      "row": 1,
+      "tag": "labels only"
+    }
+  ],
+  "flows": [
+    {
+      "from": "prompt",
+      "to": "hook",
+      "label": "prompt text",
+      "classification": "stdin JSON",
+      "variant": "emphasis"
+    },
+    {
+      "from": "key",
+      "to": "hook",
+      "label": "credential",
+      "classification": "never logged",
+      "variant": "security"
+    },
+    {
+      "from": "hook",
+      "to": "state",
+      "label": "excerpts + metadata",
+      "classification": "1,200 + 4 x 1,000 chars",
+      "variant": "default"
+    },
+    {
+      "from": "hook",
+      "to": "jev",
+      "label": "bounded snapshot",
+      "classification": "HTTPS, no redirects",
+      "variant": "emphasis"
+    },
+    {
+      "from": "hook",
+      "to": "chat",
+      "label": "model + effort",
+      "classification": "allowlisted",
+      "variant": "default"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "amber",
+      "title": "Sent to TypeSafe",
+      "items": [
+        "Latest prompt, up to 3,000 characters",
+        "First task excerpt and the last four requests",
+        "Current model, effort and previous suggestion"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Kept on your machine",
+      "items": [
+        "Session files with hashed names, mode 0600",
+        "Context resets after 24 hours idle",
+        "Delete the state folder to erase it"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Never read or sent",
+      "items": [
+        "Your source files or the full transcript",
+        "Your API key, in logs or in the repo",
+        "Raw provider text in the model's context"
+      ]
+    }
+  ]
+}
