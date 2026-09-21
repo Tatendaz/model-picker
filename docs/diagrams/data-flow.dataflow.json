@@ -135,11 +135,11 @@
     },
     {
       "dot": "rose",
-      "title": "Never read or sent",
+      "title": "Kept out",
       "items": [
-        "Your source files or the full transcript",
-        "Your API key, in logs or in the repo",
-        "Raw provider text in the model's context"
+        "Source files and the full transcript are never read",
+        "The API key is never logged or stored by the plugin",
+        "Raw provider text never enters the model's context"
       ]
     }
   ]

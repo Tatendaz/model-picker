@@ -1,8 +1,10 @@
 name: Dependabot auto-merge
 
 # Auto-merge Dependabot PRs (ported from Tatendaz/Quant_Backtest_Platform,
-# hardened 2026-08-01). Patch + minor bumps are approved and merged
-# automatically after required checks pass; major bumps wait for a human.
+# hardened 2026-08-01). Patch + minor bumps get auto-merge enabled once
+# required checks pass; they still need the code owner's approval under the
+# protect-main ruleset, so a bot never approves its own update. Major bumps
+# wait for a human.
 # Repositories without required checks must merge manually. There is no
 # fallback that bypasses unfinished checks.
 on:
@@ -10,7 +12,7 @@ on:
     branches: [main, master]
 
 # Dependabot-triggered runs get a read-only token by default; raise it so the
-# job can approve and enable auto-merge on the PR. (Dependabot PR branches live
+# job can enable auto-merge on the PR. (Dependabot PR branches live
 # in this repo, so this elevation is allowed — see GitHub's "Automating
 # Dependabot" docs.)
 permissions:
@@ -39,17 +41,6 @@ jobs:
         uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98 # v3.1.0
         with:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
-      # Approval first: satisfies branch protections that require one review.
-      # Needs "Allow GitHub Actions to create and approve pull requests" in the
-      # repo's Actions settings; continue-on-error keeps repos without that
-      # setting (and without a review requirement) working.
-      - name: Approve (patch + minor)
-        if: steps.meta.outputs.update-type == 'version-update:semver-patch' || steps.meta.outputs.update-type == 'version-update:semver-minor'
-        continue-on-error: true
-        run: gh pr review --approve "$PR_URL"
-        env:
-          PR_URL: ${{ github.event.pull_request.html_url }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       # Fail closed when required checks are absent, failed, or time out.
       # gh exits nonzero when no required checks exist; the job timeout also
       # stops the workflow without reaching a merge command.
