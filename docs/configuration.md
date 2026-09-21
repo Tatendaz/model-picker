@@ -55,8 +55,26 @@ model_reasoning_effort = "medium"
 Existing threads and explicit app or profile selections can override these
 defaults. The plugin never edits this file.
 
+## Plugin ID
+
+The marketplace entry is `codex-model-advisor@model-picker`. The plugin ID
+stayed `codex-model-advisor` for compatibility with earlier installs; the
+display name is Model Picker. If you ran an older personal copy, disable it
+before enabling this one, or the hook runs twice on every prompt.
+
 ## Turn it off
 
 - For one session: send `/advisor mute`.
 - Everywhere: set `"enabled": false`, or disable the plugin in Codex.
-- To remove it, see [Uninstall](../README.md#uninstall).
+
+## Uninstall
+
+Disable or uninstall the plugin in Codex, then remove its local files:
+
+```sh
+rm -rf ~/.codex/model-advisor-state ~/.codex/model-advisor.json
+security delete-generic-password -s jev-codex-api-key   # macOS, if you used Keychain
+```
+
+The plugin never edits other hooks or your Codex config, so nothing else needs
+undoing.

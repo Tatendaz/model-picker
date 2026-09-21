@@ -1,8 +1,9 @@
 # Feature: Open-source setup and README rewrite
 
-The README drops from 171 lines of dense prose to a short page: what the
-plugin does, an example callout, install, the three prompt commands, two
-diagrams, a five-line data disclosure, limits, and a documentation table.
+The README drops from 171 lines and about 1,380 words to 120 lines and about
+700: what the plugin does, an example callout, install, the three prompt
+commands, two diagrams, a short data disclosure, limits, and a documentation
+table.
 Detail moved into `docs/how-it-works.md`, `docs/configuration.md`,
 `docs/privacy.md` and `docs/limitations.md`, rewritten against the current
 `advisor.py`. Two Archify diagrams (a sequence of one check, and a data-flow

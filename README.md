@@ -47,25 +47,18 @@ separately from your Codex plan.
    security add-generic-password -a "$USER" -s jev-codex-api-key -w
    ```
 
-3. Trust the hook. Open `/hooks` in the Codex CLI, review the
-   `codex-model-advisor@model-picker` UserPromptSubmit command, and trust it.
-   Installing the plugin does not do this for you.
+3. Trust the hook: installing does not. Open `/hooks` in the Codex CLI, review
+   the `codex-model-advisor@model-picker` UserPromptSubmit command, and trust it.
 
 4. Start a new task. The first real prompt triggers a check.
 
-The plugin ID stays `codex-model-advisor` for compatibility; the display name
-is Model Picker. If you ran an older personal copy, disable it first so the
-hook does not run twice.
-
 ## Use it
 
-| Send this as a prompt | What happens |
+| Send as a prompt (these are not Codex slash commands) | What happens |
 |---|---|
 | `model advisor recheck` | Reassesses your last request now and always shows the result. |
 | `/advisor mute` | Silences alerts for this session. |
 | `/advisor unmute` | Turns alerts back on. |
-
-These are phrases the hook reads, not native Codex slash commands.
 
 ## How it works
 
@@ -76,14 +69,13 @@ These are phrases the hook reads, not native Codex slash commands.
 
 The hook checks your first real prompt, any prompt that brings a new kind of
 scope (architecture, integration, migration, security, repeated failures), and
-every fourth prompt. It stays quiet for replies such as "ok", repeated prompts,
-prompts within 30 seconds of a check, and suggestions that are not an upgrade.
-Each suggestion is shown once, and never more than one alert per 15 minutes.
+every fourth prompt. It stays quiet for replies such as "ok", repeats, prompts
+within 30 seconds of a check, and suggestions that are not an upgrade. Each
+suggestion is shown once, and at most one alert every 15 minutes.
 
-The hook does not block your prompt. After the check (5-second provider
-timeout) the turn runs on the model you selected, so a suggestion applies to
-your next turn, or you can stop and resend.
-[docs/how-it-works.md](docs/how-it-works.md) has the full rules.
+It never blocks your prompt: after the check (5-second timeout) the turn runs on
+the model you selected, so a suggestion applies to your next turn.
+[Full rules](docs/how-it-works.md).
 
 ## What leaves your machine
 
@@ -92,32 +84,27 @@ your next turn, or you can stop and resend.
   <img src="docs/diagrams/data-flow-light.svg" width="100%" alt="Data flow: your prompt and API key enter advisor.py. It writes bounded excerpts to local session state, sends a bounded snapshot over HTTPS to TypeSafe JEV, and shows only an allowlisted model and effort label in Codex chat.">
 </picture>
 
-- **Sent to TypeSafe on each check:** your latest prompt (up to 3,000
-  characters), the first task excerpt, the last four requests, the current
-  model and effort, and the previous suggestion. It goes to `api.typesafe.ai`
-  under your key and TypeSafe's terms.
-- **Kept locally:** session files in `~/.codex/model-advisor-state`, mode
-  0600. Context resets after 24 hours idle; delete the folder to erase it.
+- **Sent to `api.typesafe.ai` on each check, under your key:** the latest prompt
+  (up to 3,000 characters), the first task excerpt, the last four requests, the
+  current model and effort, and the previous suggestion.
+- **Kept locally:** session files in `~/.codex/model-advisor-state`, mode 0600.
 - **Never read:** your source files or the full transcript. No telemetry.
-- **Off switch:** set `"enabled": false` in `~/.codex/model-advisor.json`, or
-  disable the plugin.
+- **Off switch:** `"enabled": false` in `~/.codex/model-advisor.json`.
 
-Details: [docs/privacy.md](docs/privacy.md).
+[Privacy details](docs/privacy.md).
 
 ## Limits
 
-- It cannot switch models for you. Codex's `UserPromptSubmit` hook has no
-  output field that changes the model or effort. [Why](docs/limitations.md).
-- Native Windows is not supported; the state lock uses `fcntl`.
-- Suggestions come from a classifier and can be wrong. Your selection always
-  decides which model runs.
+It cannot switch models for you: Codex's `UserPromptSubmit` hook has no output
+field for the model or effort ([why](docs/limitations.md)). Native Windows is
+not supported. Suggestions come from a classifier and can be wrong.
 
 ## Documentation
 
 | Page | Covers |
 |---|---|
 | [How it works](docs/how-it-works.md) | When checks run, alert rules, the TypeSafe request, voice handoffs |
-| [Configuration](docs/configuration.md) | Config keys, environment variables, suggested Codex defaults |
+| [Configuration](docs/configuration.md) | Config keys, environment variables, Codex defaults, uninstall |
 | [Privacy and trust](docs/privacy.md) | Data sent, local state, hook trust, credentials |
 | [Limitations](docs/limitations.md) | Automatic switching, what has been verified |
 | [Diagrams](docs/diagrams/README.md) | Diagram sources and how to regenerate them |
@@ -125,18 +112,9 @@ Details: [docs/privacy.md](docs/privacy.md).
 
 ## Uninstall
 
-Disable or uninstall the plugin in Codex, then remove its local files:
+Disable the plugin in Codex, then delete the files listed in
+[Configuration](docs/configuration.md#uninstall).
 
-```sh
-rm -rf ~/.codex/model-advisor-state ~/.codex/model-advisor.json
-security delete-generic-password -s jev-codex-api-key   # macOS, if you used Keychain
-```
-
-The plugin never edits other hooks or your Codex config.
-
-## Contributing
-
-`make test` runs the suite. It needs no network, key, or dependencies. See
-[CONTRIBUTING.md](CONTRIBUTING.md) and [SECURITY.md](SECURITY.md).
-
-MIT © Tatenda Zhou. Not affiliated with OpenAI or TypeSafe.
+`make test` runs the suite with no network, key or dependencies.
+[Contributing](CONTRIBUTING.md) · [Security](SECURITY.md) · MIT © Tatenda Zhou ·
+Not affiliated with OpenAI or TypeSafe.
