@@ -1,0 +1,12 @@
+# The plugin has no package dependencies. This keeps the SHA-pinned GitHub
+# Actions current; an outdated pin is how the Node 20 deprecation warning
+# reached this repo's CI.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ["*"]

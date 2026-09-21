@@ -1,0 +1,20 @@
+name: Private contact request
+description: Ask the maintainer for a private thread about conduct or security. Include no details here.
+title: "[contact] Private contact request"
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This issue is public. Do not describe the incident, the vulnerability, or anyone involved.
+        The maintainer will reply here with a private way to continue.
+        For a security vulnerability, use the private advisory form linked on the
+        new-issue page first; use this form only if that one is unavailable to you.
+  - type: dropdown
+    id: topic
+    attributes:
+      label: Topic
+      options:
+        - Code of conduct
+        - Security
+    validations:
+      required: true
