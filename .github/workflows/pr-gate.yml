@@ -1,0 +1,100 @@
+name: PR Gate
+
+# Server-side mirror of the local pre-push gate: every PR adds a dated
+# docs/features and docs/summaries entry named for its branch, and source
+# changes come with test changes. ci.yml owns the tests themselves.
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  docs-gate:
+    # Dependabot bumps never carry docs entries. Bind to the PR author, not
+    # github.actor, so a human "Update branch" click does not re-enable it.
+    if: github.event.pull_request.user.login != 'dependabot[bot]'
+    name: Docs gate (features + summaries)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Derive branch slug
+        id: slug
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+        run: |
+          branch="$HEAD_REF"
+          slug="${branch#feat/}"
+          slug="${slug#fix/}"
+          slug="${slug#chore/}"
+          slug="${slug#docs/}"
+          slug="${slug#refactor/}"
+          slug="${slug#codex/}"
+          slug="${slug//\//-}"
+          echo "slug=$slug" >> "$GITHUB_OUTPUT"
+          echo "Branch slug: $slug"
+
+      - name: Require docs/features entry
+        env:
+          BRANCH_SLUG: ${{ steps.slug.outputs.slug }}
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          git fetch origin "$BASE_REF" --quiet
+          ./.github/scripts/require-docs-entry.sh \
+            docs/features "$BRANCH_SLUG" "origin/$BASE_REF...HEAD"
+
+      - name: Require docs/summaries entry
+        env:
+          BRANCH_SLUG: ${{ steps.slug.outputs.slug }}
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          git fetch origin "$BASE_REF" --quiet
+          ./.github/scripts/require-docs-entry.sh \
+            docs/summaries "$BRANCH_SLUG" "origin/$BASE_REF...HEAD"
+
+  coverage-for-new-code:
+    name: New code has new tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Check that changed source files have changed tests
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          git fetch origin "$BASE_REF" --quiet
+          changed=$(git diff --name-only "origin/$BASE_REF...HEAD")
+          non_test=$(echo "$changed" | grep -Ev '(^|/)(tests|docs|\.github)/' || true)
+          src_changed=$(echo "$non_test" | grep -E '\.py$' || true)
+          test_changed=$(echo "$changed" | grep -E '(^|/)tests/' || true)
+
+          if [ -n "$src_changed" ]; then
+            echo "Source changes:"; echo "$src_changed"
+          else
+            echo "Source changes: none"
+          fi
+          if [ -n "$test_changed" ]; then
+            echo "Test changes:"; echo "$test_changed"
+          else
+            echo "Test changes: none"
+          fi
+
+          if [ -n "$src_changed" ] && [ -z "$test_changed" ]; then
+            echo "::error::Source files changed but no test files changed. Add tests covering the new behavior."
+            exit 1
+          fi
