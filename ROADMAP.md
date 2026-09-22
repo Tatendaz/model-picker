@@ -19,6 +19,14 @@ do not expose one. A separate client can control turn selection through
 [Codex App Server](https://learn.chatgpt.com/docs/app-server#lifecycle-overview).
 No automatic-mode preference is offered until switching is implemented.
 
+## Implemented: Claude Code support
+
+The same script runs as a Claude Code plugin with Claude models, `/model` and
+`/effort` callouts, and model tracking through `SessionStart` and
+`PostModelSwitch`. Next: confirm install from the GitHub marketplace and the
+callout on Opus and Fable, and use the effort level if Claude Code starts
+passing it to hooks.
+
 ## Implemented: task-aware reassessment
 
 Bounded request history, new-scope checks, periodic reassessment, upgrade-only alerts,
