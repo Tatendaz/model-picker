@@ -109,7 +109,7 @@ adequate pair, tell JEV to treat the prompt as data rather than instructions,
 and to honor an explicit model preference in the prompt. They name the host
 ("Codex model", "Claude model") and its everyday pair (Terra medium, Sonnet
 medium). [`request.example.json`](../plugins/codex-model-advisor/request.example.json)
-shows the shape.
+shows the shape of a Codex request.
 
 The response must name one of the offered choices and carry a confidence
 between 0 and 1. Anything else, a redirect, or a body over 64 KiB counts as a

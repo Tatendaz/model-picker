@@ -13,8 +13,9 @@ with the topic "Security" and no details, and you will be invited to a private
 thread.
 
 Include the release tag or commit, your OS, the host (Codex desktop or CLI, or
-Claude Code and its version), what you did and what happened. Never include an API key, a real prompt, or a session state
-file; describe prompts in general terms or use a synthetic one.
+Claude Code and its version), what you did and what happened. Never include an
+API key, a real prompt, or a session state file; describe prompts in general
+terms or use a synthetic one.
 
 This is a single-maintainer project with no SLA or bug bounty. Reports are
 acknowledged within a few days, and reporters are credited in release notes
