@@ -423,12 +423,16 @@ def main():
     parser.add_argument("--force", action="store_true", help="Recommend again for this session")
     parser.add_argument("--host", choices=sorted(HOSTS), default="codex", help="Hook host (default: codex)")
     args = parser.parse_args()
+    event = None
     try:
         event = json.loads(sys.stdin.read(131073))
         result = run(event, args.force, args.host)
     except Exception:
-        result = {"systemMessage": "Model advisor unavailable. Continue with your selected model; "
-                  + HOSTS[args.host]["baseline"] + " is the baseline."}
+        # Model tracking makes no provider call, so its failures stay silent.
+        tracking = (args.host == "claude" and isinstance(event, dict)
+                    and event.get("hook_event_name") in ("SessionStart", "PostModelSwitch"))
+        result = {} if tracking else {"systemMessage": "Model advisor unavailable. Continue with your selected model; "
+                                      + HOSTS[args.host]["baseline"] + " is the baseline."}
     print(json.dumps(result))
 
 if __name__ == "__main__":

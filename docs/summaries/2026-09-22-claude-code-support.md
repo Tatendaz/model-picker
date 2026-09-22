@@ -22,7 +22,7 @@ plugin hooks and symlinks.
 
 Added host profiles to `advisor.py`, the `claude-model-advisor` plugin folder,
 the Claude marketplace file, model tracking on `SessionStart` and
-`PostModelSwitch`, 15 tests, the CI manifest check for Claude, and docs for both
+`PostModelSwitch`, 16 tests, the CI manifest check for Claude, and docs for both
 hosts. Regenerated both diagrams with Archify. Compared the old and new script
 on 1,500 random Codex prompt sequences. Ran live checks in Claude Code with real
 TypeSafe calls, headless and interactive.

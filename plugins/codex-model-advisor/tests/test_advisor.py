@@ -280,6 +280,23 @@ class ClaudeTests(unittest.TestCase):
             a.run(self.event)
         self.assertEqual(call.call_args.args[2], "codex")
 
+    def test_tracking_failure_is_silent(self):
+        import contextlib
+        import io
+        stdin = json.dumps({"hook_event_name": "SessionStart", "session_id": "s", "model": "claude-opus-5"})
+        for argv, expected in [(["advisor.py", "--host", "claude"], {}), (["advisor.py"], {})]:
+            out = io.StringIO()
+            with patch.object(a, "track_model", side_effect=OSError("read-only")), patch.object(a.sys, "argv", argv), \
+                    patch.object(a.sys, "stdin", io.StringIO(stdin)), contextlib.redirect_stdout(out):
+                a.main()
+            self.assertEqual(json.loads(out.getvalue()), expected)
+        out = io.StringIO()
+        prompt = json.dumps(self.event)
+        with patch.object(a, "run", side_effect=OSError("read-only")), patch.object(a.sys, "argv", ["advisor.py", "--host", "claude"]), \
+                patch.object(a.sys, "stdin", io.StringIO(prompt)), contextlib.redirect_stdout(out):
+            a.main()
+        self.assertIn("Sonnet / medium is the baseline", json.loads(out.getvalue())["systemMessage"])
+
     def test_claude_state_is_separate_and_private(self):
         with patch.object(a, "recommend", return_value={"model": "claude-sonnet-5", "effort": "medium", "reason": "Routine"}) as call:
             a.run(self.event, host="claude")
