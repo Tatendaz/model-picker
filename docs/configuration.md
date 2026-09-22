@@ -70,10 +70,11 @@ defaults. The plugin never edits this file.
 ## Switching in Claude Code
 
 Claude Code runs Sonnet, Opus and Fable at high effort unless you set another
-default. Hooks cannot see the effort, so the advisor assumes high. `/model opus` and
-`/effort high` also save the choice as your default for new sessions. To
-change only the current session, open `/model` with no argument, pick a model
-and press `s`, or start Claude Code with `--model` and `--effort`.
+default. Hooks cannot see the effort, so the advisor assumes high.
+
+`/model opus` and `/effort high` also save the choice as your default for new
+sessions. To change only the current session, open `/model` with no argument,
+pick a model and press `s`, or start Claude Code with `--model` and `--effort`.
 
 ## Plugin ID
 
