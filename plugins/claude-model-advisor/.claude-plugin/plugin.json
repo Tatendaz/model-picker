@@ -1,0 +1,12 @@
+{
+  "name": "claude-model-advisor",
+  "version": "0.1.0",
+  "description": "JEV-powered model and effort recommendations for Claude Code. No automatic switching.",
+  "author": {
+    "name": "Tatenda Zhou"
+  },
+  "homepage": "https://github.com/Tatendaz/model-picker",
+  "repository": "https://github.com/Tatendaz/model-picker",
+  "license": "MIT",
+  "keywords": ["model", "effort", "hooks", "typesafe"]
+}
