@@ -45,7 +45,8 @@ as the transcript path.
 | Lock files | same folder, `.json.lock` | same folder, `.json.lock` |
 | Your config | `~/.codex/model-advisor.json` (optional) | `~/.claude/model-advisor.json` (optional) |
 
-Session files are mode 0600 and hold the excerpts listed above plus check,
+For Claude Code, `~/.claude` means `$CLAUDE_CONFIG_DIR` when that variable is
+set. Session files are mode 0600 and hold the excerpts listed above plus check,
 alert and mute metadata. The file name is a hash, so a crafted session ID
 cannot write outside the folder. Context resets after 24 hours idle, but files
 stay until you delete them:

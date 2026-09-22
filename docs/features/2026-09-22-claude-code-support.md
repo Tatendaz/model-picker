@@ -33,8 +33,9 @@ the same script can serve both if it knows which host called it.
   for checks, plus `SessionStart` and `PostModelSwitch`, which record the active
   model ID in session state with no network call.
 - Claude Code state and config live in `~/.claude/model-advisor-state` and
-  `~/.claude/model-advisor.json`, with `CLAUDE_ADVISOR_STATE_DIR` and
-  `CLAUDE_ADVISOR_CONFIG` overrides. Same hashing, locking and mode 0600.
+  `~/.claude/model-advisor.json` (under `$CLAUDE_CONFIG_DIR` when set), with
+  `CLAUDE_ADVISOR_STATE_DIR` and `CLAUDE_ADVISOR_CONFIG` overrides. Same
+  hashing, locking and mode 0600.
 - The Claude callout reads "Switch with `/model opus` and `/effort high` if
   useful." Mute hints use `mute model advisor`, because Claude Code has a
   built-in `/advisor` command.
@@ -70,7 +71,10 @@ throwaway hook and synthetic prompts:
 - `PostModelSwitch` has `from_model` and `to_model`, for example
   `claude-opus-5[1m]` and `claude-haiku-4-5-20251001`. The script strips the
   bracket suffix and the date.
-- No hook fires on `/effort`, and hooks do not get `CLAUDE_EFFORT`.
+- No hook fires on `/effort`. The docs say hook commands get `CLAUDE_EFFORT`,
+  but `SessionStart` and `UserPromptSubmit` did not, on Sonnet 5 at low effort,
+  headless or interactive. A `claude` started from inside another Claude Code
+  session inherits the parent's value, so the advisor does not read it.
 - Codex also sets `CLAUDE_PLUGIN_ROOT` and `CLAUDE_PLUGIN_DATA` for plugin hooks
   (from the openai/codex source), so the host comes from the explicit flag, not
   the environment.

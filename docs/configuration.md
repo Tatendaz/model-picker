@@ -50,6 +50,9 @@ medium, high), `claude-opus-5` (medium, high, xhigh) and `claude-fable-5-1`
 | `CLAUDE_ADVISOR_CONFIG` | Path to the Claude Code config file instead of `~/.claude/model-advisor.json`. |
 | `CLAUDE_ADVISOR_STATE_DIR` | Directory for Claude Code session state instead of `~/.claude/model-advisor-state`. |
 
+If you set `CLAUDE_CONFIG_DIR` to move Claude Code's `~/.claude` folder, the
+Claude Code config and state paths above move with it.
+
 Claude Code state does not go in `CLAUDE_PLUGIN_DATA`, because a manual
 `--force` run from the skill does not get that variable, and both runs must
 share one session file.
