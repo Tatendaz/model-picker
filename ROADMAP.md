@@ -23,9 +23,8 @@ No automatic-mode preference is offered until switching is implemented.
 
 The same script runs as a Claude Code plugin with Claude models, `/model` and
 `/effort` callouts, and model tracking through `SessionStart` and
-`PostModelSwitch`. Next: confirm install from the GitHub marketplace and the
-callout on Opus and Fable, and use the effort level if Claude Code starts
-passing it to hooks.
+`PostModelSwitch`. Next: check the callout on Opus and Fable, and use the
+effort level if Claude Code starts passing it to `UserPromptSubmit` hooks.
 
 ## Implemented: task-aware reassessment
 
