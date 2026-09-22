@@ -21,7 +21,9 @@ keep their defaults.
 | `allowed_models` | the host's four models | Restricts suggestions, for example to the models your account offers. |
 
 `allowed_models` maps a model to its allowed efforts. It can only narrow the
-host's built-in list; an unknown model or effort makes every check fail:
+host's built-in list; an unknown model or effort makes every check fail. On an
+uncertain or failed check, the hook still names the host's fixed baseline
+(Terra / medium or Sonnet / medium), even when your list leaves that pair out:
 
 ```json
 {
