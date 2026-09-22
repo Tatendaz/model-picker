@@ -15,6 +15,7 @@
       `<slug>` is the branch name without its `feat/`-style prefix.
 - [ ] `advisor.py` still imports only the standard library. CI checks this.
 - [ ] Any new data sent to a provider is listed in `docs/privacy.md`.
+- [ ] Codex behaviour is unchanged, or the change to it is described above.
 - [ ] No API keys, real prompts, or session state files are in the diff. Tests use synthetic prompts.
 
 ## Notes for the reviewer

@@ -20,7 +20,7 @@ body:
     attributes:
       label: Steps to reproduce
       placeholder: |
-        1. Start a new Codex task on gpt-5.6-terra / medium
+        1. Start a new Codex task on gpt-5.6-terra / medium (or a Claude Code session on Sonnet)
         2. Send a synthetic prompt such as "Plan a multi-tenant auth migration"
         3. No callout appears
     validations:
@@ -28,11 +28,12 @@ body:
   - type: dropdown
     id: client
     attributes:
-      label: Codex client
+      label: Host
       options:
         - Codex desktop app
         - Codex CLI
-        - Both
+        - Claude Code
+        - More than one
     validations:
       required: true
   - type: textarea
@@ -41,9 +42,9 @@ body:
       label: Environment
       placeholder: |
         macOS 26.0
-        codex --version:
+        codex --version or claude --version:
         python3 --version:
-        Plugin version (Codex plugin list or release tag):
+        Plugin version (plugin list or release tag):
     validations:
       required: true
   - type: textarea
@@ -52,5 +53,6 @@ body:
       label: Hook status
       description: |
         Optional. The `last_status` and `input_mode` values from the newest file in
-        ~/.codex/model-advisor-state. Copy only those two fields.
+        ~/.codex/model-advisor-state or ~/.claude/model-advisor-state. Copy only
+        those two fields.
       render: text

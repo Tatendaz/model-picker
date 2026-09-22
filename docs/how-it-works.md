@@ -1,9 +1,38 @@
 # How it works
 
-Model Picker is one `UserPromptSubmit` command hook,
-[`advisor.py`](../plugins/codex-model-advisor/scripts/advisor.py). Codex runs it
-before each prompt with a 10-second timeout. It uses only the Python standard
-library.
+Model Picker is one script,
+[`advisor.py`](../plugins/codex-model-advisor/scripts/advisor.py), that runs as
+a command hook in Codex and in Claude Code. The host runs it before each prompt
+with a 10-second timeout. It uses only the Python standard library.
+
+## Two hosts, one script
+
+| | Codex | Claude Code |
+|---|---|---|
+| Plugin folder | `plugins/codex-model-advisor/` | `plugins/claude-model-advisor/` |
+| Marketplace file | `.agents/plugins/marketplace.json` | `.claude-plugin/marketplace.json` |
+| Hooks | `UserPromptSubmit` | `UserPromptSubmit`, `SessionStart`, `PostModelSwitch` |
+| Command | `advisor.py` | `advisor.py --host claude` |
+| Models suggested | GPT models (table below) | Claude models (table below) |
+| State folder | `~/.codex/model-advisor-state` | `~/.claude/model-advisor-state` |
+
+The script defaults to the Codex host, so the Codex hook command is the same as
+before Claude Code support. Each host reads only its own marketplace file: Codex
+looks for `.agents/plugins/marketplace.json` before `.claude-plugin/`, and
+Claude Code never reads `.agents/` or `.codex-plugin/`.
+
+The Claude Code folder holds only its manifest and `hooks/hooks.json`. Its
+`scripts/` and `skills/` are symlinks into the Codex folder, and Claude Code
+copies their contents when it installs the plugin. A separate folder is needed
+because Claude Code loads a plugin's `hooks/hooks.json` even when
+`.claude-plugin/plugin.json` names another hooks file; sharing the Codex folder
+would run the Codex hook in Claude Code as well.
+
+Claude Code does not put the model in the `UserPromptSubmit` event. The
+`SessionStart` and `PostModelSwitch` hooks record the model ID in session state
+instead, with no network call. `claude-opus-5[1m]` is stored as
+`claude-opus-5`, and dated IDs such as `claude-haiku-4-5-20251001` lose the
+date.
 
 ## When a check runs
 
@@ -24,22 +53,28 @@ It skips a prompt when:
   `continue`, `go ahead`, `proceed`, `do it`) or repeats the previous prompt
   exactly.
 - The last check was less than 30 seconds ago.
-- The session is muted.
+- The session is muted. Send `mute model advisor` and `unmute model advisor`.
+  Codex also accepts `/advisor mute` and `/advisor unmute`. Claude Code has a
+  built-in `/advisor` command that takes those prompts before the hook sees
+  them, so use the plain phrases there.
 
 ## When an alert is shown
 
 A finished check produces an alert only if all of these hold:
 
-- The suggestion is an upgrade over the model and effort Codex reports. If
-  Codex reports the model but not the effort, a high-effort suggestion for the
-  same model is shown as conditional ("use high effort if you are not
-  already").
+- The suggestion is an upgrade over the current model and effort. If the
+  model is known but the effort is not, a suggestion for the same model above
+  the host's usual effort is shown as conditional ("use high effort if you are
+  not already"). The usual effort is medium in Codex and high in Claude Code,
+  so in Claude Code only `xhigh` or `max` for the current model alerts.
 - This exact model and effort pair has not been shown since your model last
   changed.
 - No alert was shown in the last 15 minutes (`cooldown_seconds`).
 
-If Codex does not report the current model, only the first check of a session
-can alert.
+Codex reports the model on every prompt but not the effort. Claude Code reports
+neither, so the model comes from the tracking hooks and the effort is always
+unknown. When the model is unknown, only the first check of a session can
+alert.
 
 `model advisor recheck` and `advisor.py --force` bypass the cooldown, the
 duplicate rules and the upgrade rule, and always report a result.
@@ -47,30 +82,33 @@ duplicate rules and the upgrade rule, and always report a result.
 ## Failures
 
 The provider timeout is 5 seconds. If TypeSafe fails on the first check or on a
-recheck, you get a notice that Terra / medium is the baseline and your
-selection is unchanged. Later automatic checks fail quietly. A fallback is not
-a JEV verdict about your task.
+recheck, you get a notice naming the baseline (Terra / medium in Codex, Sonnet /
+medium in Claude Code) and saying your selection is unchanged. Later automatic
+checks fail quietly. A fallback is not a JEV verdict about your task.
 
 If JEV answers `uncertain`, an automatic check stays quiet. A recheck tells you
-the result was uncertain and that Terra / medium is only the baseline.
+the result was uncertain and that the baseline is only a baseline.
 
 ## The TypeSafe request
 
 Each check sends one JEV `choice` question. The candidate answers are every
-allowed model and effort pair, plus `uncertain`. Each answer carries a fixed
-rubric: a one-line task category for the model and a one-line description of
-the effort level.
+allowed model and effort pair for the host, plus `uncertain`. Each answer
+carries a fixed rubric: a one-line task category for the model and a one-line
+description of the effort level. Both hosts use the same four categories.
 
-| Model | Task category |
-|---|---|
-| `gpt-5.6-luna` | Simple lookup, short summary, extraction, or a small isolated edit |
-| `gpt-5.6-terra` | Everyday coding, setup, reporting, and bounded troubleshooting |
-| `gpt-5.6-sol` | Complex debugging, multi-component changes, or substantial ambiguity |
-| `gpt-6-astra` | Unusually difficult reasoning or architecture beyond routine complex coding |
+| Task category | Codex | Claude Code |
+|---|---|---|
+| Simple lookup, short summary, extraction, or a small isolated edit | `gpt-5.6-luna` (low, medium) | `claude-haiku-4-5` (no effort setting) |
+| Everyday coding, setup, reporting, and bounded troubleshooting | `gpt-5.6-terra` (low, medium, high) | `claude-sonnet-5` (low, medium, high) |
+| Complex debugging, multi-component changes, or substantial ambiguity | `gpt-5.6-sol` (medium, high) | `claude-opus-5` (medium, high, xhigh) |
+| Unusually difficult reasoning or architecture beyond routine complex coding | `gpt-6-astra` (medium, high) | `claude-fable-5-1` (high, xhigh, max) |
 
-The instructions ask for the least expensive adequate pair, tell JEV to treat
-the prompt as data rather than instructions, and to honor an explicit model
-preference in the prompt. [`request.example.json`](../plugins/codex-model-advisor/request.example.json)
+Haiku 4.5 has no effort setting, so its only entry is `none` and a Haiku
+suggestion names the model alone. The instructions ask for the least expensive
+adequate pair, tell JEV to treat the prompt as data rather than instructions,
+and to honor an explicit model preference in the prompt. They name the host
+("Codex model", "Claude model") and its everyday pair (Terra medium, Sonnet
+medium). [`request.example.json`](../plugins/codex-model-advisor/request.example.json)
 shows the shape.
 
 The response must name one of the offered choices and carry a confidence
@@ -84,15 +122,22 @@ applied.
 
 An alert returns two things:
 
-- `systemMessage`: a warning line the Codex UI shows.
+- `systemMessage`: a warning line. Codex shows it as a warning; Claude Code
+  shows it under your prompt as "UserPromptSubmit says: ...".
 - `additionalContext`: an instruction for the assistant to show the 🔶 callout
   at the top of its reply. It contains only the allowlisted model and effort
   labels, never prompt text or provider output.
 
-The warning alone was not visible in desktop testing, so both are sent. Alert
-turns add a few hundred characters of context, which can affect prompt-cache
-reuse. Quiet checks return nothing. An emitted alert does not prove the app
-displayed it.
+The warning alone was not visible in Codex desktop testing, so both are sent.
+Whether the callout appears depends on the model following the instruction: in
+Claude Code testing, Sonnet 5 showed it and Haiku 4.5 did not, while the
+warning line appeared both times. Alert turns add a few hundred characters of
+context, which can affect prompt-cache reuse. Quiet checks return nothing. An
+emitted alert does not prove the app displayed it.
+
+The callout's last line tells you how to switch. In Codex it says to use the
+model picker. In Claude Code it names the commands, for example `/model opus`
+and `/effort high`.
 
 The bundled [`model-advisor`](../plugins/codex-model-advisor/skills/model-advisor/SKILL.md)
 skill tells the assistant how to show a hook result and how to run a manual
@@ -100,7 +145,7 @@ check with `--force` when you ask for one.
 
 ## Voice handoffs
 
-Codex voice requests arrive as `<realtime_delegation>` text. The hook reads
+This applies to Codex only. Codex voice requests arrive as `<realtime_delegation>` text. The hook reads
 only the `<input>` element and ignores `transcript_tail_flush` events, which
 repeat earlier speech. Typed and spoken prompts share one history and one
 cooldown. The hook never receives audio. Session state records `input_mode`
@@ -108,8 +153,11 @@ and `last_status`, so you can check what happened without extra logging.
 
 ## Session state
 
-State lives in `~/.codex/model-advisor-state/<sha256 of session id>.json`,
-mode 0600, written atomically under a per-session lock. It holds the first task
-excerpt (1,200 characters), the last four prompts (1,000 characters each), and
-check, alert and mute metadata. If a session is idle for more than 24 hours,
-its context resets on the next prompt. Files are not deleted automatically.
+State lives in `<state folder>/<sha256 of session id>.json`, mode 0600, written
+atomically under a per-session lock. The state folder is
+`~/.codex/model-advisor-state` for Codex and `~/.claude/model-advisor-state`
+for Claude Code. A file holds the first task excerpt (1,200 characters), the
+last four prompts (1,000 characters each), and check, alert and mute metadata.
+Claude Code files also hold the active model ID. If a session is idle for more
+than 24 hours, its context resets on the next prompt or model event. Files are
+not deleted automatically.
