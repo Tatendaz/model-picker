@@ -452,8 +452,8 @@ rect.c-bg-rect { fill: var(--bg); }
           <text x="126.5" y="111" class="t-muted" font-size="7" text-anchor="middle">typed or spoken prompt</text>
         </g>
 
-        <g id="node-codex" data-node-id="codex" data-node-label="Codex" tabindex="0" role="button" aria-label="Focus Codex, desktop or CLI, Sequence participant" aria-pressed="false" data-node-kind="frontend" data-node-sublabel="desktop or CLI" data-node-context="Sequence participant">
-          <title>Codex · desktop or CLI · Sequence participant</title>
+        <g id="node-codex" data-node-id="codex" data-node-label="Host app" tabindex="0" role="button" aria-label="Focus Host app, Codex or Claude Code, Sequence participant" aria-pressed="false" data-node-kind="frontend" data-node-sublabel="Codex or Claude Code" data-node-context="Sequence participant">
+          <title>Host app · Codex or Claude Code · Sequence participant</title>
           <rect x="223.8" y="72" width="129" height="54" rx="6" class="c-mask"/>
           <rect x="223.8" y="72" width="129" height="54" rx="6" class="c-frontend" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="frontend" class="semantic-sigil s-frontend" transform="translate(229.8 78) scale(0.6875)">
@@ -462,8 +462,8 @@ rect.c-bg-rect { fill: var(--bg); }
             <circle cx="4.1" cy="4.8" r=".7" class="sigil-fill"/>
             <circle cx="6.3" cy="4.8" r=".7" class="sigil-fill"/>
           </g>
-          <text data-node-label="" x="288.3" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Codex</text>
-          <text x="288.3" y="111" class="t-muted" font-size="7" text-anchor="middle">desktop or CLI</text>
+          <text data-node-label="" x="288.3" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Host app</text>
+          <text x="288.3" y="111" class="t-muted" font-size="7" text-anchor="middle">Codex or Claude Code</text>
         </g>
 
         <g id="node-hook" data-node-id="hook" data-node-label="advisor.py" tabindex="0" role="button" aria-label="Focus advisor.py, UserPromptSubmit hook, Sequence participant" aria-pressed="false" data-node-kind="backend" data-node-sublabel="UserPromptSubmit hook" data-node-context="Sequence participant">

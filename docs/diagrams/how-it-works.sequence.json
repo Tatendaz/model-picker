@@ -20,8 +20,8 @@
     {
       "id": "codex",
       "type": "frontend",
-      "label": "Codex",
-      "sublabel": "desktop or CLI"
+      "label": "Host app",
+      "sublabel": "Codex or Claude Code"
     },
     {
       "id": "hook",
