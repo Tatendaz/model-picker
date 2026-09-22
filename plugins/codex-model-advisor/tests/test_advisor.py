@@ -292,6 +292,11 @@ class ClaudeTests(unittest.TestCase):
             self.assertEqual(a.host_path("claude", "state"), Path("/home/u/.claude/model-advisor-state"))
             self.assertEqual(a.config_path("claude"), Path("/home/u/.claude/model-advisor.json"))
             self.assertEqual(a.config_path(), Path("/home/u/.codex/model-advisor.json"))
+        with patch.dict(os.environ, {"CLAUDE_CONFIG_DIR": "/cfg/claude-work"}, clear=True), \
+                patch.object(a.Path, "home", return_value=Path("/home/u")):
+            self.assertEqual(a.host_path("claude", "state"), Path("/cfg/claude-work/model-advisor-state"))
+            self.assertEqual(a.config_path("claude"), Path("/cfg/claude-work/model-advisor.json"))
+            self.assertEqual(a.host_path("codex", "state"), Path("/home/u/.codex/model-advisor-state"))
 
     def test_session_start_and_model_switch_track_model_without_network(self):
         with patch.object(a, "recommend") as call, patch.object(a, "credential") as key:
