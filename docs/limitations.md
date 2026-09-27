@@ -80,7 +80,7 @@ some of what the patterns miss.
 | Text escalation and chat callout | Checked by hand in Codex desktop and CLI on 2026-09-20 |
 | Codex behaviour after Claude Code support | Old and new `advisor.py` compared on 1,500 random prompt sequences and 70 request cases on 2026-09-22: identical output, requests and state |
 | Claude Code hook payloads | Captured from Claude Code 2.1.278 on 2026-09-22 with synthetic prompts (field names only) |
-| Claude Code live check | Passed on 2026-09-22 in Claude Code 2.1.278 with real TypeSafe calls: headless alert, interactive recheck, session-only switch to Haiku, upgrade alert, mute |
+| Claude Code live check | Passed on 2026-09-22 in Claude Code 2.1.278 with real TypeSafe calls: headless alert, interactive recheck, session-only switch to Haiku, upgrade alert, mute. Repeated on 2026-09-27 from a marketplace install, plus an Opus 5.5 session where the conditional high-effort alert fired |
 | Claude Code install from GitHub | Passed on 2026-09-22 from the `feat/claude-code-support` branch in an empty config folder: the symlinked `scripts/` and `skills/` were copied as files |
 | Codex live check after Claude Code support | Not yet run by hand; covered by the old-versus-new comparison above |
 | Voice handoff parsing | Covered by tests with synthetic events |
