@@ -490,6 +490,12 @@ class ClaudeTests(unittest.TestCase):
             "Honor an explicit user model preference when available. Prefer Terra medium for "
             "ordinary work and uncertain when the task is underspecified."))
 
+    def test_both_manifests_carry_the_same_version(self):
+        codex = json.loads((ROOT / "plugins/codex-model-advisor/.codex-plugin/plugin.json").read_text())
+        claude = json.loads((ROOT / "plugins/claude-model-advisor/.claude-plugin/plugin.json").read_text())
+        self.assertEqual(codex["version"], claude["version"])
+        self.assertRegex(codex["version"], r"^\d+\.\d+\.\d+$")
+
     def test_manifests_keep_hosts_apart(self):
         codex = json.loads((ROOT / "plugins/codex-model-advisor/hooks/hooks.json").read_text())
         self.assertEqual(list(codex["hooks"]), ["UserPromptSubmit"])
