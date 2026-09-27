@@ -39,8 +39,13 @@ turn. Switch before your next prompt, or stop the turn and resend.
 - After installing the plugin mid-session, start a new session. The current
   session missed `SessionStart`.
 - `/model <alias>` and `/effort <level>` save the choice as your default for new
-  sessions. See [switching in Claude Code](configuration.md#switching-in-claude-code)
-  for session-only switches.
+  sessions, except `/effort max`, which Claude Code keeps to the session unless
+  `CLAUDE_CODE_EFFORT_LEVEL` is set. See
+  [switching in Claude Code](configuration.md#switching-in-claude-code) for
+  session-only switches.
+- Suggestions name one release per family, such as `claude-opus-5`. On another
+  release the `/model` alias still points at the right model, but the name in
+  the suggestion can lag behind what you run.
 - The callout in the reply depends on the model following an instruction.
   Haiku 4.5 skipped it in testing; the warning line under your prompt still
   appeared.

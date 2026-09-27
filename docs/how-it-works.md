@@ -32,7 +32,8 @@ Claude Code does not put the model in the `UserPromptSubmit` event. The
 `SessionStart` and `PostModelSwitch` hooks record the model ID in session state
 instead, with no network call. `claude-opus-5[1m]` is stored as
 `claude-opus-5`, and dated IDs such as `claude-haiku-4-5-20251001` lose the
-date.
+date. For the upgrade check, a release is ranked with its family, so
+`claude-opus-5-5` counts as an Opus model.
 
 ## When a check runs
 

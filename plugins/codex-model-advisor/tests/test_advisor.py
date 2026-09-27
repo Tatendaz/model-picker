@@ -349,6 +349,32 @@ class ClaudeTests(unittest.TestCase):
                               ("claude-opus-4-8", "claude-opus-4-8"), ("", None), ("bad model", None), (None, None), (5, None)]:
             self.assertEqual(a.claude_model(raw), expected, raw)
 
+    def test_newer_releases_rank_by_family(self):
+        for raw, family in [("claude-opus-5-5", "claude-opus-5"), ("claude-opus-4-8", "claude-opus-5"),
+                            ("claude-sonnet-4-6", "claude-sonnet-5"), ("claude-fable-5", "claude-fable-5-1"),
+                            ("claude-haiku-4-5", "claude-haiku-4-5"), ("gpt-5.6-terra", "gpt-5.6-terra")]:
+            self.assertEqual(a.claude_family(raw), family, raw)
+        self.assertEqual(a.rank_key("gpt-5.6-terra", "codex"), "gpt-5.6-terra")
+        self.start("claude-opus-5-5")
+        with patch.object(a.time, "time", return_value=10000), \
+                patch.object(a, "recommend", return_value={"model": "claude-sonnet-5", "effort": "high", "reason": "Routine"}) as call:
+            self.assertEqual(a.run(self.event, host="claude"), {})
+            self.assertEqual(call.call_args.args[0]["current_model"], "claude-opus-5-5")
+        with patch.object(a.time, "time", return_value=10100), \
+                patch.object(a, "recommend", return_value={"model": "claude-fable-5-1", "effort": "high", "reason": "Hard"}):
+            out = a.run(dict(self.event, prompt="Design the production architecture"), host="claude")
+        self.assertIn("claude-fable-5-1 / high", out["systemMessage"])
+
+    def test_tilde_paths_expand_for_claude_only(self):
+        with patch.dict(os.environ, {"CLAUDE_CONFIG_DIR": "~/claude-work", "HOME": "/home/u"}, clear=True), \
+                patch.object(a.Path, "home", return_value=Path("/home/u")):
+            self.assertEqual(a.host_path("claude", "state"), Path("/home/u/claude-work/model-advisor-state"))
+        with patch.dict(os.environ, {"CLAUDE_ADVISOR_STATE_DIR": "~/state", "HOME": "/home/u"}, clear=True), \
+                patch.object(a.Path, "home", return_value=Path("/home/u")):
+            self.assertEqual(a.host_path("claude", "state"), Path("/home/u/state"))
+        with patch.dict(os.environ, {"CODEX_ADVISOR_STATE_DIR": "~/state"}, clear=True):
+            self.assertEqual(a.host_path("codex", "state"), Path("~/state"))
+
     def test_upgrade_ranking_uses_tracked_model(self):
         self.start("claude-sonnet-5")
         opus = {"model": "claude-opus-5", "effort": "high", "reason": "Complex"}

@@ -42,6 +42,10 @@ medium, high), `claude-opus-5` (medium, high, xhigh) and `claude-fable-5-1`
 (high, xhigh, max). Haiku has no effort setting, so write its entry as
 `"claude-haiku-4-5": ["none"]`.
 
+Those four names stand for their model families. If you run another release,
+such as `claude-opus-5-5` or `claude-sonnet-4-6`, the upgrade check ranks it
+with its family, and a suggestion names the family and the `/model` alias.
+
 ## Environment variables
 
 | Variable | Effect |
@@ -78,8 +82,10 @@ Claude Code runs Sonnet, Opus and Fable at high effort unless you set another
 default. Hooks cannot see the effort, so the advisor assumes high.
 
 `/model opus` and `/effort high` also save the choice as your default for new
-sessions. To change only the current session, open `/model` with no argument,
-pick a model and press `s`, or start Claude Code with `--model` and `--effort`.
+sessions. `/effort max` is the exception: Claude Code applies it to the current
+session only, unless you set `CLAUDE_CODE_EFFORT_LEVEL`. To change only the
+current session, open `/model` with no argument, pick a model and press `s`, or
+start Claude Code with `--model` and `--effort`.
 
 ## Plugin ID
 

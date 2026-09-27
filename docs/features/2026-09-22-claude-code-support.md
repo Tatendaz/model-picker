@@ -45,7 +45,11 @@ the same script can serve both if it knows which host called it.
 - `SKILL.md` covers both hosts. CI's manifest check now also validates the
   Claude marketplace, manifest and hooks, and fails if a Claude hook lacks
   `--host claude` or a Codex hook has any `--host`.
-- 16 new tests. The 24 existing tests are unchanged.
+- Model IDs are ranked by family, so `claude-opus-5-5` counts as an Opus model
+  for the upgrade check. Claude Code paths expand a literal `~`, because a
+  settings file can set `CLAUDE_CONFIG_DIR` where no shell expands it. Codex
+  paths keep their current behaviour.
+- 18 new tests. The 24 existing tests are unchanged.
 - README, how-it-works, configuration, privacy, limitations, CONTRIBUTING,
   SECURITY, the issue and PR templates, the roadmap, and both diagrams
   (regenerated with Archify, light and dark) cover both hosts.
