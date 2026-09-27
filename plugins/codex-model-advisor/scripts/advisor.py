@@ -28,7 +28,7 @@ DEFAULT = {"model": "gpt-5.6-terra", "effort": "medium"}
 CLAUDE_MODELS = {
     "claude-haiku-4-5": ["none"],
     "claude-sonnet-5": ["low", "medium", "high"],
-    "claude-opus-5": ["medium", "high", "xhigh"],
+    "claude-opus-5-5": ["medium", "high", "xhigh"],
     "claude-fable-5-1": ["high", "xhigh", "max"],
 }
 EFFORTS = {"low": "Straightforward task with few decisions.",
@@ -66,12 +66,13 @@ HOSTS = {
         "models": CLAUDE_MODELS,
         "default": {"model": "claude-sonnet-5", "effort": "medium"},
         "baseline": "Sonnet / medium",
-        # Claude Code defaults Sonnet, Opus and Fable to high effort.
-        "assumed_effort": "high",
+        # Effort assumed per model, from Claude Code's own defaults. Opus 5.5
+        # starts at medium, Opus 4.7 at xhigh, every other model at high.
+        "assumed_effort": {"claude-opus-5-5": "medium", "claude-opus-4-7": "xhigh"},
         "descriptions": {
             "claude-haiku-4-5": "Simple lookup, short summary, extraction, or a small isolated edit.",
             "claude-sonnet-5": "Everyday coding, setup, reporting, and bounded troubleshooting.",
-            "claude-opus-5": "Complex debugging, multi-component changes, or substantial ambiguity.",
+            "claude-opus-5-5": "Complex debugging, multi-component changes, or substantial ambiguity.",
             "claude-fable-5-1": "Unusually difficult reasoning or architecture beyond routine complex coding.",
         },
         "efforts": dict(EFFORTS, none="This model has no effort setting.",
@@ -94,7 +95,7 @@ HOSTS = {
         "mute": "Send mute model advisor to silence this session.",
         "unmute": "Send unmute model advisor to resume.",
         "aliases": {"claude-haiku-4-5": "haiku", "claude-sonnet-5": "sonnet",
-                    "claude-opus-5": "opus", "claude-fable-5-1": "fable"},
+                    "claude-opus-5-5": "opus", "claude-fable-5-1": "fable"},
     },
 }
 
@@ -285,6 +286,11 @@ def current_selection(event, saved, host):
 def rank_key(model, host):
     return claude_family(model) if host == "claude" else model
 
+def assumed_effort(profile, model):
+    """The effort the host runs when it reports none. Claude Code varies it by model."""
+    levels = profile["assumed_effort"]
+    return levels if isinstance(levels, str) else levels.get(model, "high")
+
 def label(decision):
     if decision["effort"] == "none":
         return decision["model"]
@@ -405,7 +411,7 @@ def run(event, force=False, host="codex"):
             if decision["model"] == ranked and current_effort in EFFORT_RANK:
                 upgrade = EFFORT_RANK[decision["effort"]] > EFFORT_RANK[current_effort]
             elif decision["model"] == ranked and (EFFORT_RANK.get(decision["effort"], 0)
-                                                   > EFFORT_RANK[profile["assumed_effort"]]):
+                                                   > EFFORT_RANK[assumed_effort(profile, current)]):
                 # Missing effort is not evidence that a higher effort is already selected.
                 effort_unknown = True
                 upgrade = True

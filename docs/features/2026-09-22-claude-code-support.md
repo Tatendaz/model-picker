@@ -39,14 +39,16 @@ the same script can serve both if it knows which host called it.
 - The Claude callout reads "Switch with `/model opus` and `/effort high` if
   useful." Mute hints use `mute model advisor`, because Claude Code has a
   built-in `/advisor` command.
-- When the effort is unknown, Claude Code assumes `high` (its default for
-  Sonnet, Opus and Fable), so only `xhigh` or `max` for the current model
-  produces a conditional alert. Codex keeps `medium`.
+- When the effort is unknown, the advisor assumes the model's own Claude Code
+  default, so only a level above it produces a conditional alert. Codex keeps
+  `medium`.
 - `SKILL.md` covers both hosts. CI's manifest check now also validates the
   Claude marketplace, manifest and hooks, and fails if a Claude hook lacks
   `--host claude` or a Codex hook has any `--host`.
-- Model IDs are ranked by family, so `claude-opus-5-5` counts as an Opus model
-  for the upgrade check. Claude Code paths expand a literal `~`, because a
+- Model IDs are ranked by family, so `claude-opus-4-8` counts as an Opus model
+  for the upgrade check. The Opus tier is `claude-opus-5-5`, and the assumed
+  effort follows each model's Claude Code default: medium on Opus 5.5, xhigh on
+  Opus 4.7, high elsewhere. Claude Code paths expand a literal `~`, because a
   settings file can set `CLAUDE_CONFIG_DIR` where no shell expands it. Codex
   paths keep their current behaviour.
 - 18 new tests. The 24 existing tests are unchanged.

@@ -29,9 +29,10 @@ turn. Switch before your next prompt, or stop the turn and resend.
 
 ## Claude Code specifics
 
-- The advisor assumes high effort, Claude Code's default for Sonnet, Opus and
-  Fable, so a suggestion for your current model at `xhigh` or `max` is shown as
-  conditional. The docs give hooks two ways to learn the level, an `effort`
+- The advisor assumes each model's default effort (medium on Opus 5.5, xhigh
+  on Opus 4.7, high elsewhere), so a suggestion above that level for your
+  current model is shown as conditional. If you saved another level, the
+  advisor does not know. The docs give hooks two ways to learn the level, an `effort`
   field and the `CLAUDE_EFFORT` variable, but in 2.1.278 neither reached a
   `UserPromptSubmit` or `SessionStart` hook on Sonnet 5 at low effort, headless
   or interactive. `CLAUDE_EFFORT` is also inherited by a `claude` started from
@@ -48,9 +49,9 @@ turn. Switch before your next prompt, or stop the turn and resend.
   `CLAUDE_CODE_EFFORT_LEVEL` is set. See
   [switching in Claude Code](configuration.md#switching-in-claude-code) for
   session-only switches.
-- Suggestions name one release per family, such as `claude-opus-5`. On another
-  release the `/model` alias still points at the right model, but the name in
-  the suggestion can lag behind what you run.
+- Suggestions name one release per family, such as `claude-opus-5-5`. On
+  another release the `/model` alias still points at the right model, but the
+  name in the suggestion can lag behind what you run.
 - The callout in the reply depends on the model following an instruction.
   Haiku 4.5 skipped it in testing; the warning line under your prompt still
   appeared.

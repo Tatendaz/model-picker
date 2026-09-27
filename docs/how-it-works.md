@@ -33,7 +33,7 @@ Claude Code does not put the model in the `UserPromptSubmit` event. The
 instead, with no network call. `claude-opus-5[1m]` is stored as
 `claude-opus-5`, and dated IDs such as `claude-haiku-4-5-20251001` lose the
 date. For the upgrade check, a release is ranked with its family, so
-`claude-opus-5-5` counts as an Opus model.
+`claude-opus-4-8` counts as an Opus model.
 
 ## When a check runs
 
@@ -66,8 +66,8 @@ A finished check produces an alert only if all of these hold:
 - The suggestion is an upgrade over the current model and effort. If the
   model is known but the effort is not, a suggestion for the same model above
   the host's usual effort is shown as conditional ("use high effort if you are
-  not already"). The usual effort is medium in Codex and high in Claude Code,
-  so in Claude Code only `xhigh` or `max` for the current model alerts.
+  not already"). The usual effort is medium in Codex. In Claude Code it is that
+  model's own default: medium on Opus 5.5, xhigh on Opus 4.7, high elsewhere.
 - This exact model and effort pair has not been shown since your model last
   changed.
 - No alert was shown in the last 15 minutes (`cooldown_seconds`).
@@ -101,7 +101,7 @@ description of the effort level. Both hosts use the same four categories.
 |---|---|---|
 | Simple lookup, short summary, extraction, or a small isolated edit | `gpt-5.6-luna` (low, medium) | `claude-haiku-4-5` (no effort setting) |
 | Everyday coding, setup, reporting, and bounded troubleshooting | `gpt-5.6-terra` (low, medium, high) | `claude-sonnet-5` (low, medium, high) |
-| Complex debugging, multi-component changes, or substantial ambiguity | `gpt-5.6-sol` (medium, high) | `claude-opus-5` (medium, high, xhigh) |
+| Complex debugging, multi-component changes, or substantial ambiguity | `gpt-5.6-sol` (medium, high) | `claude-opus-5-5` (medium, high, xhigh) |
 | Unusually difficult reasoning or architecture beyond routine complex coding | `gpt-6-astra` (medium, high) | `claude-fable-5-1` (high, xhigh, max) |
 
 Haiku 4.5 has no effort setting, so its only entry is `none` and a Haiku

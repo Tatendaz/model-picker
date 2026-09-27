@@ -38,7 +38,7 @@ The Codex list is `gpt-5.6-luna` (low, medium), `gpt-5.6-terra` (low, medium,
 high), `gpt-5.6-sol` (medium, high) and `gpt-6-astra` (medium, high).
 
 The Claude Code list is `claude-haiku-4-5` (none), `claude-sonnet-5` (low,
-medium, high), `claude-opus-5` (medium, high, xhigh) and `claude-fable-5-1`
+medium, high), `claude-opus-5-5` (medium, high, xhigh) and `claude-fable-5-1`
 (high, xhigh, max). Haiku has no effort setting, so write its entry as
 `"claude-haiku-4-5": ["none"]`.
 
@@ -78,8 +78,9 @@ defaults. The plugin never edits this file.
 
 ## Switching in Claude Code
 
-Claude Code runs Sonnet, Opus and Fable at high effort unless you set another
-default. Hooks cannot see the effort, so the advisor assumes high.
+Claude Code starts each model at its own effort: medium on Opus 5.5, xhigh on
+Opus 4.7, high on the rest. Hooks cannot see the effort, so the advisor assumes
+that default until you tell Claude Code otherwise.
 
 `/model opus` and `/effort high` also save the choice as your default for new
 sessions. `/effort max` is the exception: Claude Code applies it to the current
