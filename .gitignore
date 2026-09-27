@@ -6,3 +6,7 @@ model-advisor.json
 model-advisor-state/
 .DS_Store
 cost-estimate.json
+
+# Archify local build output
+*.visual-check.*
+docs/diagrams/*.html

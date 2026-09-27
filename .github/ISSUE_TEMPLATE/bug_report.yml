@@ -1,0 +1,56 @@
+name: Bug report
+description: A check that never ran, a missing or wrong callout, a hook error.
+title: "[bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not paste your API key, private prompts, or session state files.
+        Describe prompts in general terms or use a synthetic example.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What you did, what you expected, and what happened instead.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Start a new Codex task on gpt-5.6-terra / medium
+        2. Send a synthetic prompt such as "Plan a multi-tenant auth migration"
+        3. No callout appears
+    validations:
+      required: true
+  - type: dropdown
+    id: client
+    attributes:
+      label: Codex client
+      options:
+        - Codex desktop app
+        - Codex CLI
+        - Both
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      placeholder: |
+        macOS 26.0
+        codex --version:
+        python3 --version:
+        Plugin version (Codex plugin list or release tag):
+    validations:
+      required: true
+  - type: textarea
+    id: status
+    attributes:
+      label: Hook status
+      description: |
+        Optional. The `last_status` and `input_mode` values from the newest file in
+        ~/.codex/model-advisor-state. Copy only those two fields.
+      render: text

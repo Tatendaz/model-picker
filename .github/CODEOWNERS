@@ -1,0 +1,5 @@
+# Every change needs review from the code owner. Paired with the protect-main
+# ruleset (require code owner review), a contributor's PR needs an explicit
+# approval from @Tatendaz before it can merge.
+
+* @Tatendaz

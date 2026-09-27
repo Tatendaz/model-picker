@@ -1,0 +1,122 @@
+name: CI
+
+# Correctness gate. pr-gate.yml owns process (docs entries, new code has new
+# tests); this file owns tests and lint.
+#
+# The plugin is one stdlib-only Python script run by Codex as a hook. There is
+# no pyproject.toml or requirements file, and nothing here installs a runtime
+# dependency.
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Superseded PR pushes are cancelled; runs on main always finish.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  tests:
+    name: Tests (py${{ matrix.python-version }}, ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
+        include:
+          # The hook runs under whatever `python3` Codex finds. On macOS that
+          # can be the Command Line Tools 3.9, so macOS covers both ends.
+          - os: macos-latest
+            python-version: "3.9"
+          - os: macos-latest
+            python-version: "3.14"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      # Hermetic: the provider call, Keychain and state directory are mocked
+      # or redirected. No test may reach the network or need an API key.
+      - name: Run tests
+        run: python -m unittest discover -s plugins/codex-model-advisor/tests -v
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.13"
+
+      - name: Install ruff (pinned, lint only)
+        run: python -m pip install --quiet --disable-pip-version-check 'ruff==0.14.2'
+
+      - name: ruff check
+        run: ruff check --output-format=github plugins/ docs/diagrams/
+
+      - name: Hook script imports only the standard library
+        run: |
+          python - <<'PY'
+          import ast, pathlib, sys
+          path = pathlib.Path("plugins/codex-model-advisor/scripts/advisor.py")
+          mods = set()
+          for node in ast.walk(ast.parse(path.read_text())):
+              if isinstance(node, ast.Import):
+                  mods |= {a.name.split(".")[0] for a in node.names}
+              elif isinstance(node, ast.ImportFrom) and node.level == 0 and node.module:
+                  mods.add(node.module.split(".")[0])
+          extra = sorted(m for m in mods if m not in sys.stdlib_module_names)
+          if extra:
+              print(f"::error::{path} imports non-stdlib module(s): {', '.join(extra)}")
+              raise SystemExit(1)
+          print(f"ok: {len(mods)} imports, all stdlib")
+          PY
+
+      - name: Plugin manifests parse and point at real files
+        run: |
+          python - <<'PY'
+          import json, pathlib
+          root = pathlib.Path(".")
+          for path in sorted(root.glob("**/*.json")):
+              if ".git" not in path.parts:
+                  json.loads(path.read_text())
+          market = json.loads(pathlib.Path(".agents/plugins/marketplace.json").read_text())
+          for plugin in market["plugins"]:
+              base = root / plugin["source"]["path"]
+              manifest = json.loads((base / ".codex-plugin/plugin.json").read_text())
+              assert manifest["name"] == plugin["name"], (manifest["name"], plugin["name"])
+              assert (base / manifest["skills"]).is_dir(), manifest["skills"]
+              hooks = json.loads((base / "hooks/hooks.json").read_text())
+              for group in hooks["hooks"].values():
+                  for entry in group:
+                      for hook in entry["hooks"]:
+                          script = hook["command"].split('"')[1].split("}/", 1)[1]
+                          assert (base / script).is_file(), script
+          print("ok: manifests valid")
+          PY

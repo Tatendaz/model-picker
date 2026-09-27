@@ -1,0 +1,28 @@
+name: Feature request
+description: A new check trigger, a provider, a configuration option, or anything else.
+title: "[feat] "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem do you hit?
+      description: The friction first; the solution comes next.
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: What would you like to happen?
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Workarounds or alternatives you considered
+  - type: checkboxes
+    id: data
+    attributes:
+      label: Data sharing
+      options:
+        - label: This would send more prompt data to a provider (explain above)

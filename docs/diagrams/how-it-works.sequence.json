@@ -1,0 +1,219 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "How Model Picker checks a prompt",
+    "viewBox": [
+      1040,
+      640
+    ],
+    "column_fit": "spread",
+    "quality_profile": "showcase"
+  },
+  "participants": [
+    {
+      "id": "you",
+      "type": "external",
+      "label": "You",
+      "sublabel": "typed or spoken prompt"
+    },
+    {
+      "id": "codex",
+      "type": "frontend",
+      "label": "Codex",
+      "sublabel": "desktop or CLI"
+    },
+    {
+      "id": "hook",
+      "type": "backend",
+      "label": "advisor.py",
+      "sublabel": "UserPromptSubmit hook"
+    },
+    {
+      "id": "state",
+      "type": "database",
+      "label": "Session state",
+      "sublabel": "local, mode 0600"
+    },
+    {
+      "id": "key",
+      "type": "security",
+      "label": "API key",
+      "sublabel": "env or Keychain"
+    },
+    {
+      "id": "jev",
+      "type": "cloud",
+      "label": "TypeSafe JEV",
+      "sublabel": "api.typesafe.ai"
+    }
+  ],
+  "segments": [
+    {
+      "from": 150,
+      "to": 294,
+      "label": "Gate"
+    },
+    {
+      "from": 302,
+      "to": 442,
+      "label": "Ask JEV"
+    },
+    {
+      "from": 450,
+      "to": 560,
+      "label": "Report"
+    }
+  ],
+  "messages": [
+    {
+      "id": "send-prompt",
+      "from": "you",
+      "to": "codex",
+      "y": 176,
+      "label": "send prompt",
+      "variant": "default"
+    },
+    {
+      "id": "hook-event",
+      "from": "codex",
+      "to": "hook",
+      "y": 210,
+      "label": "event JSON on stdin",
+      "variant": "emphasis"
+    },
+    {
+      "id": "read-state",
+      "from": "hook",
+      "to": "state",
+      "y": 246,
+      "label": "lock + read session",
+      "variant": "default"
+    },
+    {
+      "id": "state-back",
+      "from": "state",
+      "to": "hook",
+      "y": 278,
+      "label": "history, cooldown, mute",
+      "variant": "return"
+    },
+    {
+      "id": "read-key",
+      "from": "hook",
+      "to": "key",
+      "y": 320,
+      "label": "read key",
+      "variant": "security"
+    },
+    {
+      "id": "key-back",
+      "from": "key",
+      "to": "hook",
+      "y": 352,
+      "label": "bearer token",
+      "variant": "return"
+    },
+    {
+      "id": "ask-jev",
+      "from": "hook",
+      "to": "jev",
+      "y": 392,
+      "label": "bounded snapshot + rubric",
+      "variant": "emphasis"
+    },
+    {
+      "id": "jev-back",
+      "from": "jev",
+      "to": "hook",
+      "y": 426,
+      "label": "choice + confidence",
+      "variant": "return"
+    },
+    {
+      "id": "save-state",
+      "from": "hook",
+      "to": "state",
+      "y": 466,
+      "label": "save result",
+      "variant": "default"
+    },
+    {
+      "id": "hook-out",
+      "from": "hook",
+      "to": "codex",
+      "y": 500,
+      "label": "warning + callout",
+      "variant": "return"
+    },
+    {
+      "id": "show-you",
+      "from": "codex",
+      "to": "you",
+      "y": 534,
+      "label": "suggestion; you switch",
+      "variant": "return"
+    }
+  ],
+  "activations": [
+    {
+      "participant": "codex",
+      "from": 204,
+      "to": 540,
+      "type": "frontend"
+    },
+    {
+      "participant": "hook",
+      "from": 210,
+      "to": 506,
+      "type": "backend"
+    },
+    {
+      "participant": "state",
+      "from": 241,
+      "to": 284,
+      "type": "database"
+    },
+    {
+      "participant": "key",
+      "from": 315,
+      "to": 358,
+      "type": "security"
+    },
+    {
+      "participant": "jev",
+      "from": 387,
+      "to": 432,
+      "type": "cloud"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "When it checks",
+      "items": [
+        "Your first real prompt in a session",
+        "A new scope word such as architecture, migration or security",
+        "Every fourth prompt, or when you send model advisor recheck"
+      ]
+    },
+    {
+      "dot": "slate",
+      "title": "When it stays quiet",
+      "items": [
+        "Short replies such as ok or thanks, and repeated prompts",
+        "Less than 30 seconds after the last check",
+        "No upgrade, or the same suggestion inside the 15-minute cooldown"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "What it never does",
+      "items": [
+        "Switch your model or effort",
+        "Hold your prompt past the 10-second hook timeout",
+        "Read your files or the full transcript"
+      ]
+    }
+  ]
+}
