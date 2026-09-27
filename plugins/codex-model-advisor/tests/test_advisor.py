@@ -403,6 +403,11 @@ class ClaudeTests(unittest.TestCase):
         with patch.object(a, "recommend", return_value=decision):
             out = a.run(self.event, host="claude")
         self.assertIn("JEV recommends **claude-haiku-4-5**.", out["hookSpecificOutput"]["additionalContext"])
+        opener = provider_reply("claude-haiku-4-5__none")
+        with patch.object(a, "credential", return_value="test-key"), patch.object(a.urllib.request, "build_opener", return_value=opener):
+            reason = a.recommend({"prompt": "Synthetic test"}, {}, "claude")["reason"]
+        self.assertEqual(reason, "Selected task category: Simple lookup, short summary, extraction, or a "
+                                 "small isolated edit. This model has no effort setting.")
 
     def test_claude_mute_failure_and_uncertain_messages(self):
         out = a.run(dict(self.event, prompt="mute model advisor"), host="claude")

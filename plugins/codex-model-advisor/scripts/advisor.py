@@ -73,7 +73,7 @@ HOSTS = {
             "claude-opus-5": "Complex debugging, multi-component changes, or substantial ambiguity.",
             "claude-fable-5-1": "Unusually difficult reasoning or architecture beyond routine complex coding.",
         },
-        "efforts": dict(EFFORTS, none="Fixed; this model has no effort setting.",
+        "efforts": dict(EFFORTS, none="This model has no effort setting.",
                         xhigh="Long multi-step work where extra reasoning clearly pays off.",
                         max="The hardest problems, where depth matters more than cost or speed."),
         "policy": ("Which available Claude model and effort level are the least expensive adequate "
