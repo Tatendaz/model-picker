@@ -43,7 +43,7 @@ Then add the plugin to your host:
 codex plugin marketplace add Tatendaz/model-picker
 codex plugin add codex-model-advisor@model-picker
 
-# Claude Code (2.1.251 or later), inside a session
+# Claude Code (2.1.257 or later), inside a session
 /plugin marketplace add Tatendaz/model-picker
 /plugin install claude-model-advisor@model-picker
 ```

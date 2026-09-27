@@ -29,9 +29,14 @@ turn. Switch before your next prompt, or stop the turn and resend.
 
 ## Claude Code specifics
 
-- Hooks never receive the effort level, so the advisor assumes high, Claude
-  Code's default for Sonnet, Opus and Fable. A suggestion for your current
-  model at `xhigh` or `max` is shown as conditional.
+- The advisor assumes high effort, Claude Code's default for Sonnet, Opus and
+  Fable, so a suggestion for your current model at `xhigh` or `max` is shown as
+  conditional. The docs give hooks two ways to learn the level, an `effort`
+  field and the `CLAUDE_EFFORT` variable, but in 2.1.278 neither reached a
+  `UserPromptSubmit` or `SessionStart` hook on Sonnet 5 at low effort, headless
+  or interactive. `CLAUDE_EFFORT` is also inherited by a `claude` started from
+  inside another session, where it reports the parent's level, so the advisor
+  reads the effort only from the event.
 - The model is known only after `SessionStart` or `PostModelSwitch` records it.
   `SessionStart` omits the model in `claude -p` runs and can omit it after
   `/clear`; until the next switch, only the first check of that session can
@@ -49,8 +54,8 @@ turn. Switch before your next prompt, or stop the turn and resend.
 - The callout in the reply depends on the model following an instruction.
   Haiku 4.5 skipped it in testing; the warning line under your prompt still
   appeared.
-- Claude Code 2.1.251 or later is required, because `PostModelSwitch` first
-  shipped in that version.
+- Claude Code 2.1.257 or later is required. `PostModelSwitch` shipped in
+  2.1.251, and Fable 5.1, which the advisor can suggest, needs 2.1.257.
 
 ## Platform
 
