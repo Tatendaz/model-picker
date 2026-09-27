@@ -110,6 +110,11 @@ rm -rf ~/.claude/model-advisor-state ~/.claude/model-advisor.json    # Claude Co
 security delete-generic-password -s jev-codex-api-key   # macOS, if you used Keychain
 ```
 
+Those are the default paths. If you set `CLAUDE_CONFIG_DIR`,
+`CLAUDE_ADVISOR_STATE_DIR` or `CLAUDE_ADVISOR_CONFIG`, delete the paths those
+variables point at instead. The same goes for `CODEX_ADVISOR_STATE_DIR` and
+`CODEX_ADVISOR_CONFIG`.
+
 In Claude Code, `/plugin uninstall claude-model-advisor@model-picker` removes
 the plugin and `/plugin marketplace remove model-picker` removes the
 marketplace. The plugin never edits other hooks or either host's config, so
