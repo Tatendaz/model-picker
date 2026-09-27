@@ -2,13 +2,19 @@
 
 ## No automatic switching
 
-Model Picker suggests a model and effort. You change them in the Codex desktop
-app or CLI. There is no automatic mode and no setting that enables one.
+Model Picker suggests a model and effort. You change them yourself: in the
+Codex desktop app or CLI, or with `/model` and `/effort` in Claude Code. There
+is no automatic mode and no setting that enables one.
 
 The plugin runs as a `UserPromptSubmit` hook. OpenAI documents three kinds of
 output for that hook: extra context, messages, and blocking the prompt. None
 of them changes the active model or reasoning effort
 ([hook reference](https://learn.chatgpt.com/docs/hooks#userpromptsubmit)).
+Claude Code's version accepts a block decision, extra context and a session
+title, plus messages, and none of those changes the model or effort either
+([hook reference](https://code.claude.com/docs/en/hooks#userpromptsubmit)).
+Its `PreModelSwitch` hook can allow or deny a switch you asked for, but it
+cannot start one.
 
 That is a limit of hooks, not of Codex as a whole. A separate client that
 drives [Codex App Server](https://learn.chatgpt.com/docs/app-server#lifecycle-overview)
@@ -20,6 +26,37 @@ describes that design; it is not built.
 The hook does not block the prompt. The turn that triggered a suggestion runs
 on the model you had selected, so the plugin does not save the cost of that
 turn. Switch before your next prompt, or stop the turn and resend.
+
+## Claude Code specifics
+
+- The advisor assumes each model's default effort (medium on Opus 5.5, xhigh
+  on Opus 4.7, high elsewhere), so a suggestion above that level for your
+  current model is shown as conditional. If you saved another level, the
+  advisor does not know. The docs give hooks two ways to learn the level, an `effort`
+  field and the `CLAUDE_EFFORT` variable, but in 2.1.278 neither reached a
+  `UserPromptSubmit` or `SessionStart` hook on Sonnet 5 at low effort, headless
+  or interactive. `CLAUDE_EFFORT` is also inherited by a `claude` started from
+  inside another session, where it reports the parent's level, so the advisor
+  reads the effort only from the event.
+- The model is known only after `SessionStart` or `PostModelSwitch` records it.
+  `SessionStart` omits the model in `claude -p` runs and can omit it after
+  `/clear`; until the next switch, only the first check of that session can
+  alert.
+- After installing the plugin mid-session, start a new session. The current
+  session missed `SessionStart`.
+- `/model <alias>` and `/effort <level>` save the choice as your default for new
+  sessions, except `/effort max`, which Claude Code keeps to the session unless
+  `CLAUDE_CODE_EFFORT_LEVEL` is set. See
+  [switching in Claude Code](configuration.md#switching-in-claude-code) for
+  session-only switches.
+- Suggestions name one release per family, such as `claude-opus-5-5`. On
+  another release the `/model` alias still points at the right model, but the
+  name in the suggestion can lag behind what you run.
+- The callout in the reply depends on the model following an instruction.
+  Haiku 4.5 skipped it in testing; the warning line under your prompt still
+  appeared.
+- Claude Code 2.1.257 or later is required. `PostModelSwitch` shipped in
+  2.1.251, and Fable 5.1, which the advisor can suggest, needs 2.1.257.
 
 ## Platform
 
@@ -41,6 +78,11 @@ some of what the patterns miss.
 | Unit tests | Run in CI on Python 3.9 to 3.14 on Linux, and 3.9 and 3.14 on macOS |
 | Live TypeSafe request | Passed on 2026-09-19 with a synthetic summarization prompt |
 | Text escalation and chat callout | Checked by hand in Codex desktop and CLI on 2026-09-20 |
+| Codex behaviour after Claude Code support | Old and new `advisor.py` compared on 1,500 random prompt sequences and 70 request cases on 2026-09-22: identical output, requests and state |
+| Claude Code hook payloads | Captured from Claude Code 2.1.278 on 2026-09-22 with synthetic prompts (field names only) |
+| Claude Code live check | Passed on 2026-09-22 in Claude Code 2.1.278 with real TypeSafe calls: headless alert, interactive recheck, session-only switch to Haiku, upgrade alert, mute. Repeated on 2026-09-27 from a marketplace install, plus an Opus 5.5 session where the conditional high-effort alert fired |
+| Claude Code install from GitHub | Passed on 2026-09-22 from the `feat/claude-code-support` branch in an empty config folder: the symlinked `scripts/` and `skills/` were copied as files |
+| Codex live check after Claude Code support | Not yet run by hand; covered by the old-versus-new comparison above |
 | Voice handoff parsing | Covered by tests with synthetic events |
 | Live voice delivery | Not yet verified end to end |
 | Recommendation quality | Not yet compared against human labels; see the roadmap |

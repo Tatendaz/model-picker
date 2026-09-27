@@ -18,7 +18,10 @@ make lint
 ## Rules
 
 - Keep it recommendation-only. The hook must never change the model, effort or
-  Codex config.
+  host config, in Codex or Claude Code.
+- Keep Codex behaviour unchanged when you add host features. Host-specific text
+  and model lists live in `HOSTS` in `advisor.py`, the default host is `codex`,
+  and the Codex `hooks/hooks.json` passes no `--host` flag.
 - No third-party imports in `advisor.py`, and no dependency manifest. CI checks
   both.
 - Never log prompts, credentials, full provider responses or exception text.
@@ -26,6 +29,11 @@ make lint
 - If a change sends more data to a provider, update
   [docs/privacy.md](docs/privacy.md) in the same PR.
 - Plugin code stays under `plugins/codex-model-advisor/`.
+  `plugins/claude-model-advisor/` holds only the Claude Code manifest and
+  hooks; its `scripts/` and `skills/` are symlinks into the Codex plugin.
+- To try the Claude Code plugin from a checkout, run
+  `claude --plugin-dir plugins/claude-model-advisor`, and set
+  `CLAUDE_ADVISOR_STATE_DIR` to a scratch folder.
 
 ## Pull requests
 

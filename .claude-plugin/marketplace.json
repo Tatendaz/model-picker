@@ -1,0 +1,17 @@
+{
+  "name": "model-picker",
+  "owner": {
+    "name": "Tatenda Zhou"
+  },
+  "metadata": {
+    "description": "Model Picker: JEV model and effort suggestions for Claude Code."
+  },
+  "plugins": [
+    {
+      "name": "claude-model-advisor",
+      "source": "./plugins/claude-model-advisor",
+      "description": "JEV-powered model and effort recommendations for Claude Code. No automatic switching.",
+      "category": "productivity"
+    }
+  ]
+}

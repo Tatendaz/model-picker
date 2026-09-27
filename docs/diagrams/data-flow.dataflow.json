@@ -70,8 +70,8 @@
     {
       "id": "chat",
       "type": "frontend",
-      "label": "Codex chat",
-      "sublabel": "warning + callout",
+      "label": "Chat",
+      "sublabel": "Codex or Claude Code",
       "stage": 3,
       "row": 1,
       "tag": "labels only"

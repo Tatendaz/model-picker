@@ -3,9 +3,9 @@ name: CI
 # Correctness gate. pr-gate.yml owns process (docs entries, new code has new
 # tests); this file owns tests and lint.
 #
-# The plugin is one stdlib-only Python script run by Codex as a hook. There is
-# no pyproject.toml or requirements file, and nothing here installs a runtime
-# dependency.
+# The plugin is one stdlib-only Python script run by Codex and Claude Code as a
+# hook. There is no pyproject.toml or requirements file, and nothing here
+# installs a runtime dependency.
 
 on:
   pull_request:
@@ -106,17 +106,38 @@ jobs:
           for path in sorted(root.glob("**/*.json")):
               if ".git" not in path.parts:
                   json.loads(path.read_text())
+
+          def check_hooks(base, host_flag):
+              hooks = json.loads((base / "hooks/hooks.json").read_text())
+              for group in hooks["hooks"].values():
+                  for entry in group:
+                      for hook in entry["hooks"]:
+                          command = hook["command"]
+                          # Codex runs the default host; Claude Code must pass --host claude.
+                          assert ("--host" in command) == bool(host_flag), command
+                          assert command.endswith(host_flag), command
+                          script = command.split('"')[1].split("}/", 1)[1]
+                          assert (base / script).is_file(), script
+
+          # Codex: .agents/plugins/marketplace.json -> .codex-plugin/plugin.json
           market = json.loads(pathlib.Path(".agents/plugins/marketplace.json").read_text())
           for plugin in market["plugins"]:
               base = root / plugin["source"]["path"]
               manifest = json.loads((base / ".codex-plugin/plugin.json").read_text())
               assert manifest["name"] == plugin["name"], (manifest["name"], plugin["name"])
               assert (base / manifest["skills"]).is_dir(), manifest["skills"]
-              hooks = json.loads((base / "hooks/hooks.json").read_text())
-              for group in hooks["hooks"].values():
-                  for entry in group:
-                      for hook in entry["hooks"]:
-                          script = hook["command"].split('"')[1].split("}/", 1)[1]
-                          assert (base / script).is_file(), script
+              check_hooks(base, "")
+
+          # Claude Code: .claude-plugin/marketplace.json -> .claude-plugin/plugin.json.
+          # scripts/ and skills/ there are symlinks into the Codex plugin.
+          market = json.loads(pathlib.Path(".claude-plugin/marketplace.json").read_text())
+          assert market["owner"]["name"], market
+          for plugin in market["plugins"]:
+              assert plugin["source"].startswith("./"), plugin["source"]
+              base = root / plugin["source"]
+              manifest = json.loads((base / ".claude-plugin/plugin.json").read_text())
+              assert manifest["name"] == plugin["name"], (manifest["name"], plugin["name"])
+              assert (base / "skills/model-advisor/SKILL.md").is_file()
+              check_hooks(base, " --host claude")
           print("ok: manifests valid")
           PY
