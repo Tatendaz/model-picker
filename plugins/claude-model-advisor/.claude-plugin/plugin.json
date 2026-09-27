@@ -1,6 +1,6 @@
 {
   "name": "claude-model-advisor",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "JEV-powered model and effort recommendations for Claude Code. No automatic switching.",
   "author": {
     "name": "Tatenda Zhou"
