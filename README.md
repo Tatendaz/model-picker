@@ -1,9 +1,9 @@
 <div align="center">
 
-<picture>
+<h1><picture>
   <source media="(prefers-color-scheme: dark)" srcset="assets/brand/lockup-dark.png">
   <img src="assets/brand/lockup-light.png" width="380" alt="Model Picker">
-</picture>
+</picture></h1>
 
 **Model and effort suggestions for Codex and Claude Code that follow your task as it grows.**
 

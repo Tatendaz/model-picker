@@ -98,9 +98,10 @@ def path_points(d):
                 raise ValueError(f"unsupported path command {token!r}")
             i += 1
             if command == "Z":
-                continue
+                command = None
+            continue
         if command is None:
-            raise ValueError("path data starts with a number")
+            raise ValueError("a number in the path has no command in front of it")
         count = _ARGS[command]
         values = [float(v) for v in tokens[i:i + count]]
         if len(values) < count:
@@ -117,6 +118,14 @@ def path_points(d):
             continue
         points.append((x, y))
     return points
+
+
+def square(box):
+    """Grow the shorter side around the centre. Favicons and avatars are square,
+    so the icon has to be too."""
+    x, y, w, h = box
+    side = max(w, h)
+    return x - (side - w) / 2, y - (side - h) / 2, side, side
 
 
 def bounds(art, key=0.0):
@@ -208,6 +217,8 @@ def build(outdir):
             x0, y0, x1, y1 = bounds(art, key)
             box = (x0 - MARGIN, y0 - MARGIN,
                    x1 - x0 + 2 * MARGIN, y1 - y0 + 2 * MARGIN)
+            if name == "icon":
+                box = square(box)
             path = os.path.join(outdir, f"{name}-{suffix}.svg")
             open(path, "w").write(document(body, box, title, GRAIN if grain else ""))
             written.append(os.path.basename(path))

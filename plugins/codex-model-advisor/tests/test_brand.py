@@ -67,6 +67,14 @@ class PathPointTests(unittest.TestCase):
             with self.assertRaises(ValueError, msg=bad):
                 build.path_points(bad)
 
+    def test_a_number_after_z_is_rejected_rather_than_looping(self):
+        """Z takes no arguments. Leaving it active would consume nothing and spin."""
+        with self.assertRaises(ValueError):
+            build.path_points("M0 0 Z 1 2")
+
+    def test_z_may_be_followed_by_a_new_subpath(self):
+        self.assertEqual(build.path_points("M1 2 Z M3 4"), [(1, 2), (3, 4)])
+
 
 class BoundsTests(unittest.TestCase):
     def test_measures_the_offset_copy_and_the_keyline(self):
@@ -196,6 +204,17 @@ class CommittedAssetTests(unittest.TestCase):
 
         walk(root, 0.0, 0.0)
         return min(xs), min(ys), max(xs), max(ys)
+
+    def test_icons_are_square(self):
+        """The README calls the icon square, and favicons and avatars are."""
+        for variant in VARIANTS:
+            root = ET.parse(BRAND / f"icon-{variant}.svg").getroot()
+            _, _, w, h = (float(n) for n in root.get("viewBox").split())
+            self.assertEqual(w, h, f"icon-{variant}.svg is {w} by {h}")
+
+    def test_squaring_grows_the_short_side_around_the_centre(self):
+        self.assertEqual(build.square((0.0, 0.0, 10.0, 4.0)), (0.0, -3.0, 10.0, 10.0))
+        self.assertEqual(build.square((0.0, 0.0, 4.0, 10.0)), (-3.0, 0.0, 10.0, 10.0))
 
     def test_readme_documents_the_palette(self):
         readme = (BRAND / "README.md").read_text()
