@@ -28,6 +28,6 @@ effort level if Claude Code starts passing it to `UserPromptSubmit` hooks.
 
 ## Implemented: task-aware reassessment
 
-Bounded request history, new-scope checks, periodic reassessment, upgrade-only alerts,
+Bounded request history, new-scope checks, periodic reassessment, upgrade alerts, a lighter suggestion on the first check,
 cooldowns, duplicate suppression and session mute. Next: validate real-world scope
 detection and alert quality, and verify live voice handoffs.

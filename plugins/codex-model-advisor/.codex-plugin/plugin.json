@@ -1,6 +1,6 @@
 {
   "name": "codex-model-advisor",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "JEV-powered model and effort recommendations before a Codex task. No automatic switching.",
   "author": {
     "name": "Tatenda Zhou"
