@@ -13,7 +13,7 @@ when yours costs more than needed. You switch; it never changes a setting.
 
 </div>
 
-On Opus 5.5 at xhigh in Claude Code, a session's first reply starts with this.
+With Opus 5.5 saved at xhigh in Claude Code, a session's first reply starts like this.
 [Benchmark](docs/benchmark.md): medium solved 47 of 50 tasks, xhigh 48, for 44% less usage.
 
 > # 🔶 Model recommendation

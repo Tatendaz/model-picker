@@ -79,6 +79,9 @@ HOSTS = {
                             "efforts, and more than Sonnet, for less usage than either."},
         ],
         "escalate_threshold": 0.5,
+        # Pairs the benchmark measured as cheaper despite the higher model tier: Opus 5.5 at
+        # medium effort used less than Sonnet 5, which took about 3.6 times the tokens.
+        "cheaper_than": {"claude-opus-5-5/medium": ["claude-sonnet-5"]},
         "policy": ("Which Claude Code setting should run the coding task in state.prompt? Pick the "
                    "lower-cost setting unless it is likely to fail." + DATA_NOTE),
         # Claude Code moves ~/.claude when CLAUDE_CONFIG_DIR is set. A settings
@@ -456,7 +459,10 @@ def run(event, force=False, host="codex"):
             return finish()
         saved["last_alert"] = now
         saved["notified"] = (saved.get("notified", []) + [target])[-12:]
-        saving = direction == "savings"
+        # Tier order stands in for cost, except for pairs the benchmark measured the other way.
+        # Those still count as upgrades for suggest_savings, since they also solve more.
+        measured = ranked in profile.get("cheaper_than", {}).get(target, [])
+        saving = direction == "savings" or measured
         who = "JEV" if decision.get("source") == "jev" else "Model Picker"
         message = ("Model suggestion: " + label(decision) + (", which uses less of your plan. " if saving else ". ")
                    + decision["reason"])

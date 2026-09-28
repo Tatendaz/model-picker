@@ -12,10 +12,10 @@ was graded with the official SWE-bench harness.
   of its repositories.
 - **Rules fixed in advance.** Candidate settings and routing rules were chosen
   on the dev set and written down before any held-out or confirmation run.
-- **Usage.** Each run's tokens were priced at API list prices. Neither vendor
-  publishes how each model counts against plan limits, so API price stands in
-  for plan usage. The same percentage then applies to the 5-hour and the
-  weekly limit, because both count the same usage.
+- **Usage.** Each run's tokens were priced at API list prices, so every
+  saving here is an API-cost estimate, not a measured plan-limit change.
+  Neither vendor publishes how each model counts against the 5-hour and
+  weekly limits. If they track API cost, the same percentage applies to both.
 - **Isolation.** Each agent worked in its own checkout and ran tests in the
   task's Docker image with no network. Some Codex runs searched the disk for
   other checkouts during the dev sweep; those runs were discarded and rerun

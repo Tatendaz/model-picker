@@ -73,8 +73,9 @@ share one session file.
 
 ## Suggested defaults
 
-These match the [benchmark](benchmark.md): the same solve rate as a higher
-effort for less usage. In `~/.codex/config.toml`:
+These match the [benchmark](benchmark.md): a solve rate comparable to the
+higher effort (Opus medium 47 of 50 held-out tasks against 48 at xhigh; Astra
+medium 42 against 42 at high) for less usage. In `~/.codex/config.toml`:
 
 ```toml
 model = "gpt-6-astra"

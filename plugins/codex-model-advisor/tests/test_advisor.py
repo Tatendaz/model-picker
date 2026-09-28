@@ -507,11 +507,23 @@ class ClaudeTests(unittest.TestCase):
         self.assertIn("Switch with `/model opus` and `/effort medium` if useful.", context)
         self.assertIn("claude-opus-5-5 / medium, which uses less of your plan.", out["systemMessage"])
 
-    def test_sonnet_session_is_told_to_use_opus(self):
+    def test_sonnet_session_is_told_opus_medium_uses_less(self):
+        # Opus 5.5 at medium effort measured cheaper than Sonnet 5 despite the higher tier.
         self.start("claude-sonnet-5")
         out = a.run(self.event, host="claude")
-        self.assertIn("Model Picker recommends **claude-opus-5-5 / medium**.", out["hookSpecificOutput"]["additionalContext"])
-        self.assertNotIn("less of your plan", out["systemMessage"])
+        self.assertIn("Model Picker recommends **claude-opus-5-5 / medium** to save usage.",
+                      out["hookSpecificOutput"]["additionalContext"])
+        self.assertIn("which uses less of your plan", out["systemMessage"])
+        # It is still an upgrade, so turning savings suggestions off does not hide it.
+        self.config_mock.return_value = {"suggest_savings": False}
+        a.run({"hook_event_name": "SessionStart", "session_id": "quiet", "source": "startup",
+               "model": "claude-sonnet-5"}, host="claude")
+        self.assertIn("systemMessage", a.run(dict(self.event, session_id="quiet"), host="claude"))
+        self.start("claude-haiku-4-5")
+        a.run({"hook_event_name": "SessionStart", "session_id": "haiku", "source": "startup",
+               "model": "claude-haiku-4-5"}, host="claude")
+        haiku = a.run(dict(self.event, session_id="haiku"), host="claude")
+        self.assertNotIn("less of your plan", haiku["systemMessage"])
 
     def test_configured_effort_reads_host_settings_read_only(self):
         self.saved_effort.stop()
