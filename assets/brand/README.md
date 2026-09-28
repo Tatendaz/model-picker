@@ -1,60 +1,69 @@
 # Model Picker brand assets
 
-The mark is three diamonds. They grow left to right, like model tiers. The
-middle one is amber because it is the pick — the model that fits the task, not
-the biggest one on the shelf. That is the whole product in one shape.
+The mark is a pen circle. One stroke, drawn round the word `picker`, that
+overshoots the start and crosses itself — the way anyone circles the right
+answer on paper. That is the product: it marks the model that fits, and you
+click it. It never presses the button.
 
-![Model Picker brand board](brand-board-dark.png)
+![Model Picker brand board](brand-board-light.png)
+
+Three things make it look drawn rather than generated: the stroke is irregular,
+the coral prints a couple of units off-register the way a cheap two-colour press
+does, and a cream die-cut edge lets the sticker sit on any background.
 
 ## Files
 
 | File | Use |
 | --- | --- |
-| `lockup-{dark,light}.svg` · `.png` | Mark plus wordmark. README headers, docs, slides. |
-| `mark-{dark,light}.svg` · `.png` | Mark on its own, horizontal. Inline next to a heading. |
-| `icon-{dark,light}.svg` · `icon-*-{512..16}.png` | Square icon, transparent. Favicons, avatars, marketplace listings. |
-| `appicon-{dark,light}.svg` · `-512.png` | Square icon on its own plate. App icons and tiles. |
-| `mark-mono.svg` · `icon-mono.svg` | One colour. Inherits `currentColor`; unpicked tiers drop to 34%. |
-| `brand-board-{dark,light}.png` | The board above. Reference, not an asset to ship. |
+| `lockup-sticker.svg` · `.png` | The logo with its cream die-cut edge. Works on any background. Start here. |
+| `lockup-light.svg` · `.png` | Ink on transparent, for light surfaces. |
+| `lockup-dark.svg` · `.png` | Cream on transparent, for dark surfaces. |
+| `lockup-mono.svg` | One colour. Inherits `currentColor`, no off-register. |
+| `icon-*` | The pen circle and tick on its own, square. Same four variants, plus PNGs at 512 down to 16. |
+| `*-sticker-grain.svg` | Same as `-sticker` with print grain in the coral. Use where a filter renders. |
+| `sticker-print-2048.png` | Large, for printing real stickers. |
+| `brand-board-{light,dark}.png` | The board above. Reference, not an asset to ship. |
 
-Pick `dark` for dark backgrounds and `light` for light ones. The amber is the
-same in both; only the two unpicked diamonds change.
+The grain variants use an SVG filter. Most renderers handle it; the plain
+`-sticker` files are the safe default.
 
 ## Colour
 
 | Token | Hex | Role |
 | --- | --- | --- |
-| Amber | `#EE9B21` | The pick. Never use it for anything else in the mark. |
-| Neutral (dark bg) | `#454B57` | The two unpicked tiers. |
-| Neutral (light bg) | `#C4C9D0` | The two unpicked tiers. |
-| Ink | `#0B0C0E` | Dark canvas. |
-| Paper | `#FBFAF8` | Light canvas. |
+| Coral | `#F2542D` | The circle. The only accent. |
+| Ink | `#1C1B19` | The pen, on light surfaces. |
+| Paper | `#FAF4E6` | The die-cut edge, and the pen on dark surfaces. |
+| Night | `#0E0D10` | Dark canvas. |
+
+Coral on paper is about 3.4:1, so it is fine for the circle and for large text,
+but body text stays in ink.
 
 ## Type
 
-Inter. `Model` at weight 620, `Picker` at 400 and 55% opacity, tracking
-−0.022em. The wordmark in the SVG files is already outlined, so nothing needs
-Inter installed to render it. Inter is SIL Open Font License 1.1.
+Shantell Sans, weight 640, bounce 45, informality 35. The wordmark in the SVG
+files is already outlined, so nothing needs the font installed to render it.
+Shantell Sans is SIL Open Font License 1.1.
 
 ## Rules
 
-- Clearspace on every side is the height of the small diamond.
-- Minimum mark height is 14 px. Below that use the square icon.
-- Do not recolour the amber diamond, reorder the tiers, or light a different one.
-- Do not add a shadow, gradient, outline, or rotate the lockup.
-- On a busy photo, use `appicon-*` so the mark keeps its own plate.
+- Clearspace on every side is the height of the letter `o`.
+- Minimum lockup width is 96 px. Below that use the icon.
+- Do not redraw the circle as a neat ellipse. The wobble and the overshoot are the mark.
+- Do not recolour the pen, add a shadow, or rotate the lockup.
+- On a photo or a busy surface, use `-sticker` so the mark keeps its own edge.
 
-## Rebuilding
+## Redrawing them
 
-`assets/brand/build.py` draws every SVG from the geometry constants, and outlines
-the wordmark from `Inter.ttf`. It needs `fonttools`. Run it from this directory:
+`build.py` draws every SVG from the geometry in one place. It needs `fonttools`
+and the Shantell Sans variable font:
 
 ```sh
 python3 -m venv venv && ./venv/bin/pip install fonttools
-curl -L -o Inter.ttf "https://raw.githubusercontent.com/google/fonts/main/ofl/inter/Inter%5Bopsz%2Cwght%5D.ttf"
+curl -L -o Shantell.ttf \
+  "https://raw.githubusercontent.com/google/fonts/main/ofl/shantellsans/ShantellSans%5BBNCE%2CINFM%2CSPAC%2Cwght%5D.ttf"
 ./venv/bin/python build.py .
 ```
 
-The PNGs are exported from those SVGs with headless Chrome. Geometry lives in
-one place: diamond diagonals 16 / 26 / 38, gap 5, corner radius 2.4 for the
-horizontal mark; 15 / 23 / 31, gap 6, radius 2.2 for the square icon.
+The PNGs are exported from those SVGs with headless Chrome at a transparent
+background.

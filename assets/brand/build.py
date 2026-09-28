@@ -1,134 +1,147 @@
-import math, os, json
+#!/usr/bin/env python3
+"""Redraw every Model Picker logo file.
+
+The mark is a pen circle: one stroke that overshoots and crosses itself. The
+colour prints slightly off-register, the way a cheap two-colour press does, and
+a cream die-cut edge lets the sticker sit on any background.
+
+Needs fonttools and Shantell Sans:
+    python3 -m venv venv && ./venv/bin/pip install fonttools
+    curl -L -o Shantell.ttf \
+      "https://raw.githubusercontent.com/google/fonts/main/ofl/shantellsans/ShantellSans%5BBNCE%2CINFM%2CSPAC%2Cwght%5D.ttf"
+    ./venv/bin/python build.py .
+"""
+import os
+import sys
 from fontTools.ttLib import TTFont
 from fontTools.varLib import instancer
 from fontTools.pens.svgPathPen import SVGPathPen
 from fontTools.pens.transformPen import TransformPen
 from fontTools.misc.transform import Transform
 
-R2 = math.sqrt(2)
-
-# ---------------------------------------------------------------- palette
-AMBER   = "#EE9B21"
-INK     = "#0B0C0E"
-PAPER   = "#FBFAF8"
-N_DARK  = "#454B57"
-N_LIGHT = "#C4C9D0"
-T_DARK  = "#F2F3F5"
-T_LIGHT = "#16181C"
-
-# ---------------------------------------------------------------- geometry
-def dia(cx, cy, d, fill, r=2.4, op=None):
-    s = d / R2
-    o = f' opacity="{op}"' if op is not None else ""
-    return (f'<rect x="{cx-s/2:.3f}" y="{cy-s/2:.3f}" width="{s:.3f}" height="{s:.3f}" '
-            f'rx="{r:.3f}" transform="rotate(45 {cx:.3f} {cy:.3f})" fill="{fill}"{o}/>')
-
-MARK_DS, MARK_GAP, MARK_R = (16, 26, 38), 5, 2.4
-MARK_W = sum(MARK_DS) + MARK_GAP * 2          # 90
-MARK_H = max(MARK_DS)                          # 38
-
-def mark_body(amber, neutral, op_neutral=None):
-    xs, cur = [], 0
-    for d in MARK_DS:
-        xs.append(cur + d / 2); cur += d + MARK_GAP
-    out = []
-    for i, d in enumerate(MARK_DS):
-        picked = (i == 1)
-        out.append(dia(xs[i], MARK_H - d / 2, d,
-                       amber if picked else neutral, MARK_R,
-                       None if picked else op_neutral))
-    return "".join(out)
-
-ICON_DS, ICON_GAP, ICON_R, ICON_BOX = (15, 23, 31), 6, 2.2, 64
-
-def icon_body(amber, neutral, op_neutral=None):
-    s = [d / R2 for d in ICON_DS]
-    d12 = ((s[0] + s[1]) / 2 + ICON_GAP) / R2
-    d23 = ((s[1] + s[2]) / 2 + ICON_GAP) / R2
-    total = d12 + d23 + ICON_DS[0] / 2 + ICON_DS[2] / 2
-    pad = (ICON_BOX - total) / 2
-    c1x = pad + ICON_DS[0] / 2; c2x = c1x + d12; c3x = c2x + d23
-    c1y = ICON_BOX - pad - ICON_DS[0] / 2; c2y = c1y - d12; c3y = c2y - d23
-    return (dia(c1x, c1y, ICON_DS[0], neutral, ICON_R, op_neutral)
-            + dia(c3x, c3y, ICON_DS[2], neutral, ICON_R, op_neutral)
-            + dia(c2x, c2y, ICON_DS[1], amber, ICON_R))
+FONT  = "Shantell.ttf"
+LOC   = {"wght": 640, "BNCE": 45, "INFM": 35, "SPAC": 20}
+CORAL = "#F2542D"   # the circle
+INK   = "#1C1B19"   # the pen
+PAPER = "#FAF4E6"   # the sticker
+OFF   = (2.6, -2.8) # off-register shift, in user units
+KEY   = 11.0        # half-width of the die-cut edge
 
 # ---------------------------------------------------------------- type
 _cache = {}
-def font_at(wght, opsz=32):
-    key = (wght, opsz)
-    if key not in _cache:
-        f = TTFont("Inter.ttf")
-        _cache[key] = instancer.instantiateVariableFont(f, {"wght": wght, "opsz": opsz})
-    return _cache[key]
+def _font():
+    if FONT not in _cache:
+        f = TTFont(FONT)
+        axes = {a.axisTag for a in f["fvar"].axes}
+        _cache[FONT] = instancer.instantiateVariableFont(
+            f, {a: v for a, v in LOC.items() if a in axes})
+    return _cache[FONT]
 
-def text_paths(s, wght, size, tracking=-0.022, x=0.0, baseline=0.0):
-    f = font_at(wght)
+def glyphs(text, size, tracking=0.0, x=0.0, baseline=0.0):
+    f = _font()
     upm = f["head"].unitsPerEm
     gs = f.getGlyphSet()
     cmap = f.getBestCmap()
-    scale = size / upm
-    track = tracking * size
-    pen_out, pos = [], x
-    for ch in s:
-        gname = cmap.get(ord(ch))
-        if gname is None:
-            pos += size * 0.3; continue
+    sc, tr = size / upm, tracking * size
+    out, pos = [], x
+    for ch in text:
+        name = cmap.get(ord(ch))
+        if name is None:
+            pos += size * 0.30
+            continue
         pen = SVGPathPen(gs, ntos=lambda v: f"{v:.2f}")
-        tp = TransformPen(pen, Transform(scale, 0, 0, -scale, pos, baseline))
-        gs[gname].draw(tp)
+        gs[name].draw(TransformPen(pen, Transform(sc, 0, 0, -sc, pos, baseline)))
         d = pen.getCommands()
         if d:
-            pen_out.append(d)
-        pos += gs[gname].width * scale + track
-    return pen_out, pos - x - track
+            out.append(d)
+        pos += gs[name].width * sc + tr
+    return out, pos - x - tr
 
-def wordmark(size, baseline, x, ink):
-    d1, w1 = text_paths("Model", 620, size, x=x, baseline=baseline)
-    gapsp = size * 0.26
-    d2, w2 = text_paths("Picker", 400, size, x=x + w1 + gapsp, baseline=baseline)
-    body = (f'<g fill="{ink}">' + "".join(f'<path d="{d}"/>' for d in d1) + '</g>'
-            f'<g fill="{ink}" opacity="0.55">' + "".join(f'<path d="{d}"/>' for d in d2) + '</g>')
-    return body, w1 + gapsp + w2
+# ---------------------------------------------------------------- drawing
+def el(d, kind="stroke", w=5.0, col=None, off=None):
+    return dict(d=d, kind=kind, w=w, col=col, off=off)
+
+def _draw(e, col, extra=0.0):
+    if e["kind"] == "fill":
+        s = f' stroke="{col}" stroke-width="{extra:.1f}" stroke-linejoin="round"' if extra else ""
+        return f'<path d="{e["d"]}" fill="{col}"{s}/>'
+    return (f'<path d="{e["d"]}" fill="none" stroke="{col}" stroke-width="{e["w"]+extra:.2f}" '
+            f'stroke-linecap="round" stroke-linejoin="round"/>')
+
+def render(art, ink, accent, key=KEY, grain=False):
+    offs = [e for e in art if e["off"]]
+    out = []
+    if key:
+        for e in offs:
+            dx, dy = e["off"]
+            out.append(f'<g transform="translate({dx} {dy})">{_draw(e, PAPER, key*2)}</g>')
+        for e in art:
+            out.append(_draw(e, PAPER, key*2))
+    shifted = []
+    for e in offs:
+        dx, dy = e["off"]
+        shifted.append(f'<g transform="translate({dx} {dy})">{_draw(e, accent)}</g>')
+    if shifted:
+        out.append(f'<g filter="url(#gr)">{"".join(shifted)}</g>' if grain else "".join(shifted))
+    for e in art:
+        out.append(_draw(e, e["col"] or ink))
+    return "".join(out)
+
+GRAIN = ('<defs><filter id="gr" x="-20%" y="-20%" width="140%" height="140%">'
+         '<feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="3" seed="7" result="n"/>'
+         '<feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  '
+         '0 0 0 -1.1 1.05" result="a"/>'
+         '<feComposite in="SourceGraphic" in2="a" operator="in"/></filter></defs>')
+
+# ---------------------------------------------------------------- the mark
+def pen_loop(cx, cy, rx, ry):
+    """One pen stroke round an ellipse. It overshoots the start and crosses itself."""
+    return (f"M{cx+rx*0.86:.1f} {cy-ry*0.34:.1f} "
+            f"C{cx+rx*0.90:.1f} {cy-ry*0.98:.1f} {cx+rx*0.22:.1f} {cy-ry*1.16:.1f} {cx-rx*0.38:.1f} {cy-ry*1.02:.1f} "
+            f"C{cx-rx*1.06:.1f} {cy-ry*0.86:.1f} {cx-rx*1.14:.1f} {cy+ry*0.40:.1f} {cx-rx*0.52:.1f} {cy+ry*0.92:.1f} "
+            f"C{cx-rx*0.06:.1f} {cy+ry*1.26:.1f} {cx+rx*0.78:.1f} {cy+ry*1.10:.1f} {cx+rx*1.02:.1f} {cy+ry*0.40:.1f} "
+            f"C{cx+rx*1.16:.1f} {cy-ry*0.12:.1f} {cx+rx*0.98:.1f} {cy-ry*0.76:.1f} {cx+rx*0.48:.1f} {cy-ry*1.08:.1f}")
+
+TICK = "M24 34 C29 40.5 32 44 34.5 46.5 C40 37 46.5 27.5 54 20.5"
+
+def lockup(ink=INK):
+    size, base, pad = 52.0, 60.0, 26.0
+    a, w1 = glyphs("model", size, -0.005, pad, base)
+    x2 = pad + w1 + size*0.30
+    b, w2 = glyphs("picker", size, -0.005, x2, base)
+    art = [el(d, "fill", 0, ink) for d in a] + [el(d, "fill", 0, ink) for d in b]
+    art.append(el(pen_loop(x2 + w2/2, base - size*0.26, w2*0.64, size*0.58),
+                  "stroke", 5.2, ink, off=OFF))
+    return art, x2 + w2 + pad + 16, base + size*0.36 + 18
+
+def icon(ink=INK):
+    return [el(pen_loop(39, 35, 26, 24), "stroke", 5.6, ink, off=(3.0, -3.0)),
+            el(TICK, "stroke", 6.0, ink)], 78, 74
 
 # ---------------------------------------------------------------- files
-def svg_doc(body, w, h, title):
+def document(body, w, h, title, defs=""):
     return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w:g} {h:g}" '
             f'width="{w:g}" height="{h:g}" role="img" aria-label="{title}">'
-            f'<title>{title}</title>{body}</svg>\n')
+            f'<title>{title}</title>{defs}{body}\n</svg>\n')
 
 def build(outdir):
     os.makedirs(outdir, exist_ok=True)
-    W = {}
-    # marks
-    W["mark-dark.svg"]  = svg_doc(mark_body(AMBER, N_DARK),  MARK_W, MARK_H, "Model Picker mark")
-    W["mark-light.svg"] = svg_doc(mark_body(AMBER, N_LIGHT), MARK_W, MARK_H, "Model Picker mark")
-    W["mark-mono.svg"]  = svg_doc(mark_body("currentColor", "currentColor", 0.34), MARK_W, MARK_H, "Model Picker mark")
-    # icons (transparent)
-    W["icon-dark.svg"]  = svg_doc(icon_body(AMBER, N_DARK),  ICON_BOX, ICON_BOX, "Model Picker icon")
-    W["icon-light.svg"] = svg_doc(icon_body(AMBER, N_LIGHT), ICON_BOX, ICON_BOX, "Model Picker icon")
-    W["icon-mono.svg"]  = svg_doc(icon_body("currentColor", "currentColor", 0.34), ICON_BOX, ICON_BOX, "Model Picker icon")
-    # app icon with plate
-    pad = 9
-    inner = f'<g transform="translate({pad} {pad}) scale({(ICON_BOX-2*pad)/ICON_BOX:.5f})">{icon_body(AMBER, "#5A6170")}</g>'
-    W["appicon-dark.svg"] = svg_doc(f'<rect width="64" height="64" rx="14.5" fill="#15171B"/>{inner}',
-                                    64, 64, "Model Picker app icon")
-    inner_l = f'<g transform="translate({pad} {pad}) scale({(ICON_BOX-2*pad)/ICON_BOX:.5f})">{icon_body(AMBER, "#B9BEC6")}</g>'
-    W["appicon-light.svg"] = svg_doc(f'<rect width="64" height="64" rx="14.5" fill="#F0EEEA"/>{inner_l}',
-                                     64, 64, "Model Picker app icon")
-    # lockups
-    for name, neutral, ink in (("lockup-dark.svg", N_DARK, T_DARK), ("lockup-light.svg", N_LIGHT, T_LIGHT)):
-        size = 34.0
-        cap = 0.727 * size
-        baseline = MARK_H / 2 + cap / 2
-        gap = 15.0
-        wm, ww = wordmark(size, baseline, MARK_W + gap, ink)
-        total = MARK_W + gap + ww
-        W[name] = svg_doc(mark_body(AMBER, neutral) + wm, round(total, 2), MARK_H, "Model Picker")
-    for k, v in W.items():
-        open(os.path.join(outdir, k), "w").write(v)
-    return list(W)
+    written = []
+    for name, make, title in (("lockup", lockup, "Model Picker"),
+                              ("icon",   icon,   "Model Picker icon")):
+        for suffix, ink, key, grain in (("sticker",       INK,            KEY, False),
+                                        ("sticker-grain", INK,            KEY, True),
+                                        ("light",         INK,            0,   False),
+                                        ("dark",          PAPER,          0,   False),
+                                        ("mono",          "currentColor", 0,   False)):
+            art, w, h = make(ink)
+            if suffix == "mono":
+                art = [dict(e, off=None) for e in art]
+            body = render(art, ink, "currentColor" if suffix == "mono" else CORAL, key, grain)
+            path = os.path.join(outdir, f"{name}-{suffix}.svg")
+            open(path, "w").write(document(body, w, h, title, GRAIN if grain else ""))
+            written.append(os.path.basename(path))
+    return sorted(written)
 
 if __name__ == "__main__":
-    import sys
-    print("\n".join(build(sys.argv[1] if len(sys.argv) > 1 else "out")))
+    print("\n".join(build(sys.argv[1] if len(sys.argv) > 1 else ".")))
