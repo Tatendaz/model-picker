@@ -18,6 +18,7 @@ keep their defaults.
 | `max_prompt_chars` | `6000` | Cap on the latest prompt sent, clamped to 1 to 12,000. The hook already cuts the prompt to 3,000 characters, so only values below 3,000 change anything. |
 | `check_every` | `4` | Periodic check interval, in substantive prompts. Minimum 1. |
 | `cooldown_seconds` | `900` | Minimum gap between alerts. `0` disables the cooldown. |
+| `suggest_lower` | `true` | Lets the first check of a session suggest a lighter model or effort. `false` keeps every automatic alert an upgrade. |
 | `allowed_models` | the host's four models | Restricts suggestions, for example to the models your account offers. |
 
 `allowed_models` maps a model to its allowed efforts. It can only narrow the
@@ -43,7 +44,7 @@ medium, high), `claude-opus-5-5` (medium, high, xhigh) and `claude-fable-5-1`
 `"claude-haiku-4-5": ["none"]`.
 
 Those four names stand for their model families. If you run another release,
-such as `claude-opus-5-5` or `claude-sonnet-4-6`, the upgrade check ranks it
+such as `claude-opus-4-8` or `claude-sonnet-4-6`, the check ranks it
 with its family, and a suggestion names the family and the `/model` alias.
 
 ## Environment variables
@@ -65,8 +66,8 @@ share one session file.
 
 ## Suggested Codex defaults
 
-Suggestions are upgrades from your current selection, so start from a mid
-setting. In `~/.codex/config.toml`:
+After the first check of a session, suggestions are upgrades from your current
+selection, so start from a mid setting. In `~/.codex/config.toml`:
 
 ```toml
 model = "gpt-5.6-terra"

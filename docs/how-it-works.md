@@ -68,9 +68,15 @@ A finished check produces an alert only if all of these hold:
   the host's usual effort is shown as conditional ("use high effort if you are
   not already"). The usual effort is medium in Codex. In Claude Code it is that
   model's own default: medium on Opus 5.5, xhigh on Opus 4.7, high elsewhere.
+  On the first check of a session, a lighter suggestion also counts: a lower
+  model, or a lower effort on the same model when the host reports your effort.
+  The alert adds "This task looks lighter than your current setting." A lower
+  effort is never inferred from an unknown one. `"suggest_lower": false` turns
+  this off.
 - This exact model and effort pair has not been shown since your model last
   changed.
-- No alert was shown in the last 15 minutes (`cooldown_seconds`).
+- No alert was shown in the last 15 minutes (`cooldown_seconds`). A lighter
+  suggestion does not start this clock, so an upgrade soon after still shows.
 
 Codex reports the model on every prompt but not the effort. Claude Code reports
 neither, so the model comes from the tracking hooks and the effort is always
@@ -78,7 +84,8 @@ unknown. When the model is unknown, only the first check of a session can
 alert.
 
 `model advisor recheck` and `advisor.py --force` bypass the cooldown, the
-duplicate rules and the upgrade rule, and always report a result.
+duplicate rules and the upgrade rule, and always report a result, lighter or
+not.
 
 ## Failures
 
