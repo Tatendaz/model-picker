@@ -75,14 +75,57 @@ def _draw(e, col, extra=0.0):
     return (f'<path d="{e["d"]}" fill="none" stroke="{col}" stroke-width="{e["w"]+extra:.2f}" '
             f'stroke-linecap="round" stroke-linejoin="round"/>')
 
+# Numbers per command. H and V take one, which is why pairing every number in a
+# path would misplace everything after the first of either.
+_ARGS = {"M": 2, "L": 2, "T": 2, "S": 4, "Q": 4, "C": 6, "H": 1, "V": 1, "Z": 0}
+
+
+def path_points(d):
+    """Every point a path names, control points included.
+
+    Only the absolute commands this module and fontTools emit are understood.
+    Anything else raises rather than quietly returning the wrong box.
+    """
+    tokens = re.findall(r"[A-Za-z]|-?\d*\.?\d+(?:[eE][-+]?\d+)?", d)
+    points, i, command, x, y = [], 0, None, 0.0, 0.0
+    while i < len(tokens):
+        token = tokens[i]
+        if token.isalpha():
+            if token.islower() and token != "z":
+                raise ValueError(f"relative path command {token!r} is not supported")
+            command = token.upper()
+            if command not in _ARGS:
+                raise ValueError(f"unsupported path command {token!r}")
+            i += 1
+            if command == "Z":
+                continue
+        if command is None:
+            raise ValueError("path data starts with a number")
+        count = _ARGS[command]
+        values = [float(v) for v in tokens[i:i + count]]
+        if len(values) < count:
+            raise ValueError(f"path command {command!r} is missing arguments")
+        i += count
+        if command == "H":
+            x = values[0]
+        elif command == "V":
+            y = values[0]
+        else:
+            for j in range(0, count, 2):
+                x, y = values[j], values[j + 1]
+                points.append((x, y))
+            continue
+        points.append((x, y))
+    return points
+
+
 def bounds(art, key=0.0):
     """Every point the artwork can touch, including the off-register copy and
     the die-cut edge. Control points count, which only ever pads more."""
     xs, ys = [], []
     for e in art:
         pad = e["w"] / 2 + key
-        nums = [float(n) for n in re.findall(r"-?\d+\.?\d*", e["d"])]
-        points = list(zip(nums[0::2], nums[1::2]))
+        points = path_points(e["d"])
         shifts = [(0.0, 0.0)] + ([e["off"]] if e["off"] else [])
         for dx, dy in shifts:
             for x, y in points:

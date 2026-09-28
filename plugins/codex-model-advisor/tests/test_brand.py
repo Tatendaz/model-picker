@@ -43,6 +43,31 @@ class PenLoopTests(unittest.TestCase):
         self.assertNotEqual(small, large)
 
 
+class PathPointTests(unittest.TestCase):
+    def test_reads_pairs_from_the_commands_the_files_use(self):
+        self.assertEqual(build.path_points("M1 2 L3 4 Z"), [(1, 2), (3, 4)])
+        self.assertEqual(build.path_points("M0 0 C1 2 3 4 5 6"),
+                         [(0, 0), (1, 2), (3, 4), (5, 6)])
+        self.assertEqual(build.path_points("M0 0 Q1 2 3 4"), [(0, 0), (1, 2), (3, 4)])
+
+    def test_h_and_v_take_one_number_each(self):
+        """Pairing every number in the path would misplace everything after an H."""
+        self.assertEqual(build.path_points("M10 20 H30 V40 L50 60"),
+                         [(10, 20), (30, 20), (30, 40), (50, 60)])
+
+    def test_a_repeated_command_may_be_left_implicit(self):
+        self.assertEqual(build.path_points("M1 2 3 4 5 6"), [(1, 2), (3, 4), (5, 6)])
+
+    def test_reads_decimals_and_exponents(self):
+        self.assertEqual(build.path_points("M-5.4 .5 L1e2 -2.5e1"),
+                         [(-5.4, 0.5), (100.0, -25.0)])
+
+    def test_refuses_what_it_cannot_measure(self):
+        for bad in ("m1 2 l3 4", "M0 0 A1 1 0 0 1 2 2", "1 2 3 4", "M0 0 L5"):
+            with self.assertRaises(ValueError, msg=bad):
+                build.path_points(bad)
+
+
 class BoundsTests(unittest.TestCase):
     def test_measures_the_offset_copy_and_the_keyline(self):
         art = [build.el("M10 10 L20 20", "stroke", 4.0, build.INK, off=(3.0, -3.0))]
@@ -163,8 +188,7 @@ class CommittedAssetTests(unittest.TestCase):
                 dy += float(match.group(2))
             if node.tag.endswith("path") and node.get("d"):
                 half = float(node.get("stroke-width", 0)) / 2
-                nums = [float(n) for n in re.findall(r"-?\d+\.?\d*", node.get("d"))]
-                for x, y in zip(nums[0::2], nums[1::2]):
+                for x, y in build.path_points(node.get("d")):
                     xs.extend([x + dx - half, x + dx + half])
                     ys.extend([y + dy - half, y + dy + half])
             for child in node:
