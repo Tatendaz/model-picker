@@ -203,7 +203,7 @@
       "items": [
         "Short replies such as ok or thanks, and repeated prompts",
         "Less than 30 seconds after the last check",
-        "No upgrade, or the same suggestion inside the 15-minute cooldown"
+        "No change from your setting, or the same suggestion inside the 15-minute cooldown"
       ]
     },
     {
