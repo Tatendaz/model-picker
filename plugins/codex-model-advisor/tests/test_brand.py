@@ -43,6 +43,18 @@ class PenLoopTests(unittest.TestCase):
         self.assertNotEqual(small, large)
 
 
+class BoundsTests(unittest.TestCase):
+    def test_measures_the_offset_copy_and_the_keyline(self):
+        art = [build.el("M10 10 L20 20", "stroke", 4.0, build.INK, off=(3.0, -3.0))]
+        tight = build.bounds(art, key=0)
+        wide = build.bounds(art, key=11.0)
+        self.assertEqual(tight[0], 10 - 2.0)
+        self.assertEqual(tight[1], 10 - 3.0 - 2.0, "the upward offset should raise the top")
+        self.assertEqual(tight[2], 20 + 3.0 + 2.0, "the rightward offset should widen the right")
+        self.assertEqual(wide[0], tight[0] - 11.0)
+        self.assertEqual(wide[3], tight[3] + 11.0)
+
+
 class RenderTests(unittest.TestCase):
     def setUp(self):
         self.art = [build.el("M0 0 L10 10", "stroke", 5.0, build.INK, off=(2.0, -2.0))]
@@ -74,9 +86,9 @@ class RenderTests(unittest.TestCase):
         out = build.render(art, build.INK, build.CORAL, key=0)
         self.assertNotIn(build.CORAL, out)
 
-    def test_document_carries_viewbox_and_title(self):
-        doc = build.document("<path/>", 78, 74, "Model Picker icon")
-        self.assertIn('viewBox="0 0 78 74"', doc)
+    def test_document_carries_the_measured_viewbox_and_a_title(self):
+        doc = build.document("<path/>", (-5.4, -10.6, 92.4, 90.6), "Model Picker icon")
+        self.assertIn('viewBox="-5.4 -10.6 92.4 90.6"', doc)
         self.assertIn("<title>Model Picker icon</title>", doc)
 
 
@@ -127,6 +139,39 @@ class CommittedAssetTests(unittest.TestCase):
                 self.assertIn("feTurbulence", text)
             else:
                 self.assertNotIn("feTurbulence", text)
+
+    def test_nothing_is_clipped_by_the_viewbox(self):
+        """The die-cut edge is a wide stroke that sits outside the artwork. If the
+        viewBox is measured from the artwork alone, that edge gets cut off."""
+        for path in self.svg_files():
+            root = ET.parse(path).getroot()
+            vx, vy, vw, vh = (float(n) for n in root.get("viewBox").split())
+            x0, y0, x1, y1 = self.drawn_bounds(root)
+            self.assertGreaterEqual(round(x0, 2), round(vx, 2), f"{path.name} clipped on the left")
+            self.assertGreaterEqual(round(y0, 2), round(vy, 2), f"{path.name} clipped at the top")
+            self.assertLessEqual(round(x1, 2), round(vx + vw, 2), f"{path.name} clipped on the right")
+            self.assertLessEqual(round(y1, 2), round(vy + vh, 2), f"{path.name} clipped at the bottom")
+
+    def drawn_bounds(self, root):
+        xs, ys = [], []
+
+        def walk(node, dx, dy):
+            shift = node.get("transform", "")
+            match = re.match(r"translate\((-?[\d.]+)\s+(-?[\d.]+)\)", shift)
+            if match:
+                dx += float(match.group(1))
+                dy += float(match.group(2))
+            if node.tag.endswith("path") and node.get("d"):
+                half = float(node.get("stroke-width", 0)) / 2
+                nums = [float(n) for n in re.findall(r"-?\d+\.?\d*", node.get("d"))]
+                for x, y in zip(nums[0::2], nums[1::2]):
+                    xs.extend([x + dx - half, x + dx + half])
+                    ys.extend([y + dy - half, y + dy + half])
+            for child in node:
+                walk(child, dx, dy)
+
+        walk(root, 0.0, 0.0)
+        return min(xs), min(ys), max(xs), max(ys)
 
     def test_readme_documents_the_palette(self):
         readme = (BRAND / "README.md").read_text()

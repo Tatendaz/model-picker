@@ -12,6 +12,7 @@ Needs fonttools and Shantell Sans:
     ./venv/bin/python build.py .
 """
 import os
+import re
 import sys
 
 # fontTools is imported where it is used, so the geometry in this module can be
@@ -24,6 +25,7 @@ INK   = "#1C1B19"   # the pen
 PAPER = "#FAF4E6"   # the sticker
 OFF   = (2.6, -2.8) # off-register shift, in user units
 KEY   = 11.0        # half-width of the die-cut edge
+MARGIN = 1.0        # breathing room inside the viewBox
 
 # ---------------------------------------------------------------- type
 _cache = {}
@@ -72,6 +74,22 @@ def _draw(e, col, extra=0.0):
         return f'<path d="{e["d"]}" fill="{col}"{s}/>'
     return (f'<path d="{e["d"]}" fill="none" stroke="{col}" stroke-width="{e["w"]+extra:.2f}" '
             f'stroke-linecap="round" stroke-linejoin="round"/>')
+
+def bounds(art, key=0.0):
+    """Every point the artwork can touch, including the off-register copy and
+    the die-cut edge. Control points count, which only ever pads more."""
+    xs, ys = [], []
+    for e in art:
+        pad = e["w"] / 2 + key
+        nums = [float(n) for n in re.findall(r"-?\d+\.?\d*", e["d"])]
+        points = list(zip(nums[0::2], nums[1::2]))
+        shifts = [(0.0, 0.0)] + ([e["off"]] if e["off"] else [])
+        for dx, dy in shifts:
+            for x, y in points:
+                xs += [x + dx - pad, x + dx + pad]
+                ys += [y + dy - pad, y + dy + pad]
+    return min(xs), min(ys), max(xs), max(ys)
+
 
 def render(art, ink, accent, key=KEY, grain=False):
     offs = [e for e in art if e["off"]]
@@ -124,8 +142,9 @@ def icon(ink=INK):
             el(TICK, "stroke", 6.0, ink)], 78, 74
 
 # ---------------------------------------------------------------- files
-def document(body, w, h, title, defs=""):
-    return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w:g} {h:g}" '
+def document(body, box, title, defs=""):
+    x, y, w, h = (round(v, 2) for v in box)
+    return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="{x:g} {y:g} {w:g} {h:g}" '
             f'width="{w:g}" height="{h:g}" role="img" aria-label="{title}">'
             f'<title>{title}</title>{defs}{body}\n</svg>\n')
 
@@ -139,12 +158,15 @@ def build(outdir):
                                         ("light",         INK,            0,   False),
                                         ("dark",          PAPER,          0,   False),
                                         ("mono",          "currentColor", 0,   False)):
-            art, w, h = make(ink)
+            art, _, _ = make(ink)
             if suffix == "mono":
                 art = [dict(e, off=None) for e in art]
             body = render(art, ink, "currentColor" if suffix == "mono" else CORAL, key, grain)
+            x0, y0, x1, y1 = bounds(art, key)
+            box = (x0 - MARGIN, y0 - MARGIN,
+                   x1 - x0 + 2 * MARGIN, y1 - y0 + 2 * MARGIN)
             path = os.path.join(outdir, f"{name}-{suffix}.svg")
-            open(path, "w").write(document(body, w, h, title, GRAIN if grain else ""))
+            open(path, "w").write(document(body, box, title, GRAIN if grain else ""))
             written.append(os.path.basename(path))
     return sorted(written)
 
