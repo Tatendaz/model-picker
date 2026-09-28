@@ -1,21 +1,21 @@
 <div align="center">
 
-# 🔶 Model Picker
+<h1><picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/brand/lockup-dark.png">
+  <img src="assets/brand/lockup-light.png" width="380" alt="Model Picker">
+</picture></h1>
 
 **Model and effort suggestions for Codex and Claude Code that follow your task as it grows.**
 
-When a task gets harder, it asks TypeSafe's JEV model which of your host's models
-and effort levels fit the work, then shows the answer in chat. You make the
-switch; the plugin never changes a setting.
+When a task gets harder, it asks TypeSafe's JEV model which of your host's models and
+effort levels fit the work, then shows the answer in chat. You make the switch; the plugin never changes a setting.
 
-[![CI](https://github.com/Tatendaz/model-picker/actions/workflows/ci.yml/badge.svg)](https://github.com/Tatendaz/model-picker/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/license-MIT-111111.svg)](LICENSE) [![Python: stdlib only](https://img.shields.io/badge/python-3.9%2B%20·%20zero%20deps-3776AB.svg)](plugins/codex-model-advisor/scripts/advisor.py)
-[![Codex plugin](https://img.shields.io/badge/Codex-plugin-10a37f.svg)](https://learn.chatgpt.com/docs/hooks) [![Claude Code plugin](https://img.shields.io/badge/Claude%20Code-plugin-D97757.svg)](https://code.claude.com/docs/en/plugins)
+[![CI](https://github.com/Tatendaz/model-picker/actions/workflows/ci.yml/badge.svg)](https://github.com/Tatendaz/model-picker/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/license-MIT-111111.svg)](LICENSE) [![Python: stdlib only](https://img.shields.io/badge/python-3.9%2B%20·%20zero%20deps-3776AB.svg)](plugins/codex-model-advisor/scripts/advisor.py) [![Codex plugin](https://img.shields.io/badge/Codex-plugin-10a37f.svg)](https://learn.chatgpt.com/docs/hooks) [![Claude Code plugin](https://img.shields.io/badge/Claude%20Code-plugin-D97757.svg)](https://code.claude.com/docs/en/plugins)
 
 </div>
 
-A short summary stays on your current model with no notice. When the session
-turns into a multi-tenant architecture review, the reply starts with this (in
-Claude Code it names Claude models and `/model` and `/effort`):
+A short summary stays on your current model with no notice. When the session turns into a
+multi-tenant architecture review, the reply starts with this (Claude Code names Claude models and `/model` and `/effort`):
 
 > # 🔶 Model recommendation
 >
@@ -99,9 +99,9 @@ Code, two local hooks track your active model. [Full rules](docs/how-it-works.md
 
 ## Limits
 
-No host lets this hook switch models: `UserPromptSubmit` has no model or effort
-output ([why](docs/limitations.md)). Claude Code does not tell hooks your effort
-level. No native Windows. Suggestions come from a classifier and can be wrong.
+No host lets this hook switch models: `UserPromptSubmit` has no model or effort output
+([why](docs/limitations.md)). Claude Code does not tell hooks your effort level. No native Windows.
+Suggestions come from a classifier and can be wrong.
 
 ## Documentation
 
@@ -111,10 +111,10 @@ level. No native Windows. Suggestions come from a classifier and can be wrong.
 | [Configuration](docs/configuration.md) | Config keys, environment variables, host defaults, uninstall |
 | [Privacy and trust](docs/privacy.md) | Data sent, local state, hook trust, credentials |
 | [Limitations](docs/limitations.md) | Automatic switching, what has been verified |
+| [Brand assets](assets/brand/README.md) | Logo files, colour, clearspace, how to redraw them |
 
-To uninstall, disable the plugin and delete the files in
-[Configuration](docs/configuration.md#uninstall). `make test` runs the suite with
-no network or key. [Diagram sources](docs/diagrams/README.md).
+To uninstall, disable the plugin and delete the files in [Configuration](docs/configuration.md#uninstall).
+`make test` runs the suite with no network or key. [Diagram sources](docs/diagrams/README.md).
 
 [Contributing](CONTRIBUTING.md) · [Security](SECURITY.md) · [Roadmap](ROADMAP.md) ·
 MIT © Tatenda Zhou · Not affiliated with OpenAI, Anthropic or TypeSafe.
