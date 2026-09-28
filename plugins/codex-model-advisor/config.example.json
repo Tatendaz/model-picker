@@ -6,5 +6,7 @@
   "keychain_service": "jev-codex-api-key",
   "max_prompt_chars": 6000,
   "check_every": 4,
-  "cooldown_seconds": 900
+  "cooldown_seconds": 900,
+  "suggest_savings": true,
+  "escalate_threshold": 0.5
 }

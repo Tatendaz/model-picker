@@ -18,12 +18,18 @@ keep their defaults.
 | `max_prompt_chars` | `6000` | Cap on the latest prompt sent, clamped to 1 to 12,000. The hook already cuts the prompt to 3,000 characters, so only values below 3,000 change anything. |
 | `check_every` | `4` | Periodic check interval, in substantive prompts. Minimum 1. |
 | `cooldown_seconds` | `900` | Minimum gap between alerts. `0` disables the cooldown. |
-| `allowed_models` | the host's four models | Restricts suggestions, for example to the models your account offers. |
+| `allowed_models` | the host's four models | Restricts the routes the advisor can suggest, for example to the models your account offers. |
+| `suggest_savings` | `true` | `false` hides suggestions for a cheaper setting than yours; upgrades still show. |
+| `escalate_threshold` | `0.5` | With two routes, JEV's probability for the costlier one at which it is chosen. Between 0 and 1. |
 
 `allowed_models` maps a model to its allowed efforts. It can only narrow the
-host's built-in list; an unknown model or effort makes every check fail. On an
-uncertain or failed check, the hook still names the host's fixed baseline
-(Terra / medium or Sonnet / medium), even when your list leaves that pair out:
+host's built-in list; an unknown model or effort makes every check fail. The
+advisor then suggests only the [routes](how-it-works.md#the-typesafe-request)
+your list allows. With one route left it asks TypeSafe nothing, and with none
+left every check fails. On a failed check, the hook still names the host's
+fixed baseline (Astra / medium or Opus / medium), even when your list leaves
+that pair out. For example, on an account without Astra this leaves Terra at
+high effort as the only suggestion:
 
 ```json
 {
@@ -43,8 +49,8 @@ medium, high), `claude-opus-5-5` (medium, high, xhigh) and `claude-fable-5-1`
 `"claude-haiku-4-5": ["none"]`.
 
 Those four names stand for their model families. If you run another release,
-such as `claude-opus-5-5` or `claude-sonnet-4-6`, the upgrade check ranks it
-with its family, and a suggestion names the family and the `/model` alias.
+such as `claude-opus-5-5` or `claude-sonnet-4-6`, the advisor ranks it with its
+family, and a suggestion names the family and the `/model` alias.
 
 ## Environment variables
 
@@ -63,24 +69,27 @@ Claude Code state does not go in `CLAUDE_PLUGIN_DATA`, because a manual
 `--force` run from the skill does not get that variable, and both runs must
 share one session file.
 
-## Suggested Codex defaults
+## Suggested defaults
 
-Suggestions are upgrades from your current selection, so start from a mid
-setting. In `~/.codex/config.toml`:
+These match the [benchmark](benchmark.md): the same solve rate as a higher
+effort for less usage. In `~/.codex/config.toml`:
 
 ```toml
-model = "gpt-5.6-terra"
+model = "gpt-6-astra"
 model_reasoning_effort = "medium"
 ```
 
-Existing threads and explicit app or profile selections can override these
-defaults. The plugin never edits this file.
+In Claude Code, run `/model opus` and `/effort medium`, which save both as your
+default. Existing threads and explicit app, profile or session selections can
+override these defaults. The plugin never edits either host's settings; it
+only reads the saved effort, as described in
+[how it works](how-it-works.md#when-an-alert-is-shown).
 
 ## Switching in Claude Code
 
 Claude Code starts each model at its own effort: medium on Opus 5.5, xhigh on
-Opus 4.7, high on the rest. Hooks cannot see the effort, so the advisor assumes
-that default until you tell Claude Code otherwise.
+Opus 4.7, high on the rest. Hooks cannot see the effort, so the advisor reads
+the level you saved and falls back to that default.
 
 `/model opus` and `/effort high` also save the choice as your default for new
 sessions. `/effort max` is the exception: Claude Code applies it to the current

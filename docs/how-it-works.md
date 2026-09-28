@@ -32,7 +32,7 @@ Claude Code does not put the model in the `UserPromptSubmit` event. The
 `SessionStart` and `PostModelSwitch` hooks record the model ID in session state
 instead, with no network call. `claude-opus-5[1m]` is stored as
 `claude-opus-5`, and dated IDs such as `claude-haiku-4-5-20251001` lose the
-date. For the upgrade check, a release is ranked with its family, so
+date. For the comparison with a suggestion, a release is ranked with its family, so
 `claude-opus-4-8` counts as an Opus model.
 
 ## When a check runs
@@ -63,61 +63,75 @@ It skips a prompt when:
 
 A finished check produces an alert only if all of these hold:
 
-- The suggestion is an upgrade over the current model and effort. If the
-  model is known but the effort is not, a suggestion for the same model above
-  the host's usual effort is shown as conditional ("use high effort if you are
-  not already"). The usual effort is medium in Codex. In Claude Code it is that
-  model's own default: medium on Opus 5.5, xhigh on Opus 4.7, high elsewhere.
+- The suggestion differs from your current model and effort. A higher model
+  or effort is an upgrade. A lower one is a saving, and the alert says it "uses
+  less of your plan"; set `suggest_savings` to `false` to hide savings
+  suggestions.
 - This exact model and effort pair has not been shown since your model last
   changed.
 - No alert was shown in the last 15 minutes (`cooldown_seconds`).
 
-Codex reports the model on every prompt but not the effort. Claude Code reports
-neither, so the model comes from the tracking hooks and the effort is always
-unknown. When the model is unknown, only the first check of a session can
-alert.
+Neither host puts the effort in the prompt event: Codex reports the model
+only, and Claude Code reports neither. When the event has no effort, the
+advisor reads the one you saved, without changing the file:
+
+- Codex: `model_reasoning_effort` at the top level of `~/.codex/config.toml`
+  (`$CODEX_HOME/config.toml` when that variable is set). Profile tables are
+  ignored.
+- Claude Code: `CLAUDE_CODE_EFFORT_LEVEL`, then
+  `modelSettings.<model>.effortLevel`, then `effortLevel` in
+  `~/.claude/settings.json`.
+
+A session-only change, such as `claude --effort` or `/model` with `s`, is not
+saved there, so the advisor can compare against your saved level instead. If
+no source has an effort, the advisor assumes the host's usual one: medium in
+Codex, and in Claude Code the model's own default (medium on Opus 5.5, xhigh
+on Opus 4.7, high elsewhere). A suggestion for the same model above that level
+is then shown as conditional ("use high effort if you are not already"), and
+one below it stays quiet.
+
+In Claude Code the model comes from the tracking hooks. When the model is
+unknown, only the first check of a session can alert.
 
 `model advisor recheck` and `advisor.py --force` bypass the cooldown, the
-duplicate rules and the upgrade rule, and always report a result.
+duplicate rules and the comparison, and always report a result.
 
 ## Failures
 
 The provider timeout is 5 seconds. If TypeSafe fails on the first check or on a
-recheck, you get a notice naming the baseline (Terra / medium in Codex, Sonnet /
+recheck, you get a notice naming the baseline (Astra / medium in Codex, Opus /
 medium in Claude Code) and saying your selection is unchanged. Later automatic
 checks fail quietly. A fallback is not a JEV verdict about your task.
 
-If JEV answers `uncertain`, an automatic check stays quiet. A recheck tells you
-the result was uncertain and that the baseline is only a baseline.
-
 ## The TypeSafe request
 
-Each check sends one JEV `choice` question. The candidate answers are every
-allowed model and effort pair for the host, plus `uncertain`. Each answer
-carries a fixed rubric: a one-line task category for the model and a one-line
-description of the effort level. Both hosts use the same four categories.
+Each host has a short list of routes, cheapest first, chosen from the
+[benchmark](benchmark.md):
 
-| Task category | Codex | Claude Code |
+| Host | Routes | Baseline |
 |---|---|---|
-| Simple lookup, short summary, extraction, or a small isolated edit | `gpt-5.6-luna` (low, medium) | `claude-haiku-4-5` (no effort setting) |
-| Everyday coding, setup, reporting, and bounded troubleshooting | `gpt-5.6-terra` (low, medium, high) | `claude-sonnet-5` (low, medium, high) |
-| Complex debugging, multi-component changes, or substantial ambiguity | `gpt-5.6-sol` (medium, high) | `claude-opus-5-5` (medium, high, xhigh) |
-| Unusually difficult reasoning or architecture beyond routine complex coding | `gpt-6-astra` (medium, high) | `claude-fable-5-1` (high, xhigh, max) |
+| Codex | `gpt-5.6-terra` / high, `gpt-6-astra` / medium | Astra / medium |
+| Claude Code | `claude-opus-5-5` / medium | Opus / medium |
 
-Haiku 4.5 has no effort setting, so its only entry is `none` and a Haiku
-suggestion names the model alone. The instructions ask for the least expensive
-adequate pair, tell JEV to treat the prompt as data rather than instructions,
-and to honor an explicit model preference in the prompt. They name the host
-("Codex model", "Claude model") and its everyday pair (Terra medium, Sonnet
-medium). [`request.example.json`](../plugins/codex-model-advisor/request.example.json)
-shows the shape of a Codex request.
+When the routes that `allowed_models` permits come down to one, as in Claude
+Code by default, the advisor suggests it without asking TypeSafe and sends
+nothing. Otherwise each check sends one JEV `choice` question. Its options are
+the routes, keyed `<model>__<effort>`, and each option carries a one-line
+rubric: the lower-cost route "will very likely fix this correctly on the first
+try", and the costlier one is "needed when a lower-cost setting is likely to
+produce a wrong or incomplete fix". The instructions ask which setting should
+run the task, to pick the lower-cost one unless it is likely to fail, and to
+treat the prompt as data rather than instructions.
+[`request.example.json`](../plugins/codex-model-advisor/request.example.json)
+shows a Codex request.
 
-The response must name one of the offered choices and carry a confidence
-between 0 and 1. Anything else, a redirect, or a body over 64 KiB counts as a
-failure. The explanation in an alert is the local rubric text for the chosen
-category, not text generated by JEV. Confidence describes how concentrated
-JEV's answer was, not whether it is correct, and no confidence cutoff is
-applied.
+JEV answers with a choice, a confidence and a probability for each option.
+With two routes, the advisor takes the costlier route when its probability is
+at least `escalate_threshold` (0.5), and the cheaper one otherwise. If the
+probabilities are missing, it takes JEV's choice. A choice outside the
+options, a confidence outside 0 to 1, a redirect, or a body over 64 KiB counts
+as a failure. The reason in an alert is the route's local rubric text, not
+text generated by JEV.
 
 ## How an alert reaches you
 

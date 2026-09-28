@@ -3,8 +3,9 @@
 ## Next: validate recommendation quality
 
 - Expand real-world testing beyond the desktop and CLI escalation flows already verified.
-- Compare recommendations with human labels on representative tasks.
-- Measure provider latency and actual Codex usage before claiming savings.
+- Extend the [benchmark](docs/benchmark.md) past bug fixes: reviews, refactors and
+  non-coding work, where a lower-cost model may be enough.
+- Measure plan-limit usage directly instead of pricing tokens at API rates.
 - Add more provider adapters and configurable budget policies.
 
 ## Later: optional automatic routing
@@ -28,6 +29,6 @@ effort level if Claude Code starts passing it to `UserPromptSubmit` hooks.
 
 ## Implemented: task-aware reassessment
 
-Bounded request history, new-scope checks, periodic reassessment, upgrade-only alerts,
-cooldowns, duplicate suppression and session mute. Next: validate real-world scope
+Bounded request history, new-scope checks, periodic reassessment, upgrade and savings
+alerts, cooldowns, duplicate suppression and session mute. Next: validate real-world scope
 detection and alert quality, and verify live voice handoffs.
