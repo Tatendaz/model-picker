@@ -27,19 +27,23 @@ was graded with the official SWE-bench harness.
 Solved tasks out of 50, and usage against the setting in the first row of
 each block.
 
-| Host | Setting | Dev | Held-out |
-|---|---|---|---|
-| Claude Code | Opus 5.5, xhigh effort | 49, baseline | 48, baseline |
-| Claude Code | **Opus 5.5, medium effort** | **50, 38% less** | **47, 44% less** |
-| Claude Code | Opus 5.5, low effort | 44, 59% less | 44, 57% less |
-| Claude Code | Sonnet 5, medium effort | 37, 36% more | not run |
-| Codex | Astra, high effort | 43, baseline | 42, baseline |
-| Codex | **Astra, medium effort** | **42, 16% less** | **42, 18% less** |
-| Codex | Terra, high effort | 38, 61% less | 37, 67% less |
-| Codex | Terra, medium effort | 33, 71% less | not run |
+| Host | Setting | Dev | Held-out | Confirmation |
+|---|---|---|---|---|
+| Claude Code | Opus 5.5, xhigh effort | 49, baseline | 48, baseline | 48, baseline |
+| Claude Code | **Opus 5.5, medium effort** | **50, 38% less** | **47, 44% less** | **48, 41% less** |
+| Claude Code | Opus 5.5, low effort | 44, 59% less | 44, 57% less | not run |
+| Claude Code | Sonnet 5, medium effort | 37, 36% more | not run | not run |
+| Codex | Astra, high effort | 43, baseline | 42, baseline | 44, baseline |
+| Codex | **JEV route: Terra high or Astra medium** | **41, 28% less** | **42, 32% less** | **43, 35% less** |
+| Codex | Astra, medium effort | 42, 16% less | 42, 18% less | 43, 22% less |
+| Codex | Terra, high effort | 38, 61% less | 37, 67% less | 40, 70% less |
+| Codex | Terra, medium effort | 33, 71% less | not run | not run |
 
-On the held-out set the 95% range of the Opus medium saving was 35 to 53%, and
-of the Astra medium saving 10 to 25%, from a paired bootstrap over tasks.
+The confirmation set spans Django, SymPy, matplotlib, scikit-learn, xarray,
+astropy, requests and pytest. On it, the 95% range of the Opus medium saving
+was 33 to 49% and of the Codex route saving 27 to 43%, from a paired bootstrap
+over tasks. Across all 150 tasks, Opus medium solved 145 against 145 at xhigh,
+and the Codex route solved 126 against 129 at Astra high.
 
 ## What the picker does with this
 
@@ -50,8 +54,9 @@ of the Astra medium saving 10 to 25%, from a paired bootstrap over tasks.
   there is one route and no JEV call.
 - **Codex:** JEV picks between Terra at high effort and Astra at medium effort
   for each task, escalating when it gives Astra at least a 0.5 probability.
-  Tuned on the dev set, this solved 41 dev and 42 held-out tasks at 28 and 32%
-  less usage than Astra at high effort.
+  The rule was fixed before the held-out and confirmation runs. It gave up 3
+  of 129 tasks for 28 to 35% less usage than Astra at high effort, against 2
+  tasks for 16 to 22% with Astra at medium effort on every task.
 
 ## JEV rubrics
 
