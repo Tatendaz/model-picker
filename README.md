@@ -4,18 +4,17 @@
 
 **Model and effort suggestions for Codex and Claude Code that follow your task as it grows.**
 
-It suggests the setting that solved as many SWE-bench tasks for less usage,
-and asks TypeSafe's JEV model when a Codex task needs the stronger one. It
-tells you when your setting costs more than the task needs, and when it needs
-more. You make the switch; the plugin never changes a setting.
+It suggests the settings that matched higher efforts on SWE-bench for less
+usage, asks TypeSafe's JEV model when a Codex task needs more, and tells you
+when yours costs more than needed. You switch; it never changes a setting.
 
 [![CI](https://github.com/Tatendaz/model-picker/actions/workflows/ci.yml/badge.svg)](https://github.com/Tatendaz/model-picker/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/license-MIT-111111.svg)](LICENSE) [![Python: stdlib only](https://img.shields.io/badge/python-3.9%2B%20·%20zero%20deps-3776AB.svg)](plugins/codex-model-advisor/scripts/advisor.py)
 [![Codex plugin](https://img.shields.io/badge/Codex-plugin-10a37f.svg)](https://learn.chatgpt.com/docs/hooks) [![Claude Code plugin](https://img.shields.io/badge/Claude%20Code-plugin-D97757.svg)](https://code.claude.com/docs/en/plugins)
 
 </div>
 
-If you run Opus 5.5 at xhigh effort in Claude Code, the first reply of a
-session starts with this (in Codex it names GPT models and the model picker):
+On Opus 5.5 at xhigh in Claude Code, a session's first reply starts with this.
+[Benchmark](docs/benchmark.md): medium solved 47 of 50 tasks, xhigh 48, for 44% less usage.
 
 > # 🔶 Model recommendation
 >
@@ -24,10 +23,6 @@ session starts with this (in Codex it names GPT models and the model picker):
 > Model Picker recommends **claude-opus-5-5 / medium** to save usage.
 >
 > Switch with `/model opus` and `/effort medium` if useful. **No settings were changed.**
-
-In the [benchmark](docs/benchmark.md), Opus 5.5 at medium effort solved 47 of
-50 held-out tasks against 48 at xhigh, for 44% less usage. In Codex, Astra at
-medium effort matched Astra at high effort for 18% less.
 
 ## Install
 
@@ -94,10 +89,8 @@ Code, two local hooks track your active model. [Full rules](docs/how-it-works.md
   <img src="docs/diagrams/data-flow-light.svg" width="100%" alt="Data flow: your prompt and API key enter advisor.py. It writes bounded excerpts to local session state, sends a bounded snapshot with your API key over HTTPS to TypeSafe JEV, and shows only an allowlisted model and effort label in chat.">
 </picture>
 
-- **Sent to `api.typesafe.ai` on each Codex check, under your key:** the latest
+- **Sent to `api.typesafe.ai` under your key, Codex checks only:** the latest
   prompt (3,000 characters), the first task excerpt and the last four requests.
-  Claude Code checks send nothing: it has one route.
-- **Read locally:** the effort you saved in the host's settings, to compare.
 - **Kept locally:** session files, mode 0600, in `~/.codex` or `~/.claude`.
 - **Never read:** your source files or the full transcript. No telemetry.
 - **Off switch:** `"enabled": false` in the host's `model-advisor.json`.
@@ -106,9 +99,8 @@ Code, two local hooks track your active model. [Full rules](docs/how-it-works.md
 ## Limits
 
 No host lets this hook switch models: `UserPromptSubmit` has no model or effort
-output ([why](docs/limitations.md)). Neither host tells hooks your effort, so
-the advisor reads the level you saved. No native Windows. Suggestions rest on
-150 benchmark tasks and a classifier, and can be wrong for your work.
+output ([why](docs/limitations.md)). Hooks get no effort, so the advisor reads
+your saved level. No native Windows. Suggestions can be wrong for your work.
 
 ## Documentation
 

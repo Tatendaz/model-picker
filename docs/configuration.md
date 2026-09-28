@@ -61,6 +61,8 @@ family, and a suggestion names the family and the `/model` alias.
 | `CODEX_ADVISOR_STATE_DIR` | Directory for Codex session state instead of `~/.codex/model-advisor-state`. |
 | `CLAUDE_ADVISOR_CONFIG` | Path to the Claude Code config file instead of `~/.claude/model-advisor.json`. |
 | `CLAUDE_ADVISOR_STATE_DIR` | Directory for Claude Code session state instead of `~/.claude/model-advisor-state`. |
+| `CODEX_HOME` | Read only: where the advisor looks for Codex's `config.toml` to learn your saved effort. |
+| `CLAUDE_CODE_EFFORT_LEVEL` | Read only: taken as your Claude Code effort before `settings.json`. |
 
 If you set `CLAUDE_CONFIG_DIR` to move Claude Code's `~/.claude` folder, the
 Claude Code config and state paths above move with it.
