@@ -29,15 +29,15 @@ turn. Switch before your next prompt, or stop the turn and resend.
 
 ## Claude Code specifics
 
-- The advisor assumes each model's default effort (medium on Opus 5.5, xhigh
-  on Opus 4.7, high elsewhere), so a suggestion above that level for your
-  current model is shown as conditional. If you saved another level, the
-  advisor does not know. The docs give hooks two ways to learn the level, an `effort`
-  field and the `CLAUDE_EFFORT` variable, but in 2.1.278 neither reached a
-  `UserPromptSubmit` or `SessionStart` hook on Sonnet 5 at low effort, headless
-  or interactive. `CLAUDE_EFFORT` is also inherited by a `claude` started from
-  inside another session, where it reports the parent's level, so the advisor
-  reads the effort only from the event.
+- Hooks do not receive the effort. The docs give them two ways to learn it,
+  an `effort` field and the `CLAUDE_EFFORT` variable, but neither reached a
+  `UserPromptSubmit` hook in 2.1.278 or 2.1.283, and `CLAUDE_EFFORT` is
+  inherited by a `claude` started from inside another session. The advisor
+  reads the level you saved instead (`CLAUDE_CODE_EFFORT_LEVEL`, then
+  `settings.json`). A session-only level, from `--effort` or `/model` with `s`,
+  is not saved, so a savings suggestion can name the level you already run.
+  With no saved level, the advisor assumes each model's default (medium on
+  Opus 5.5, xhigh on Opus 4.7, high elsewhere).
 - The model is known only after `SessionStart` or `PostModelSwitch` records it.
   `SessionStart` omits the model in `claude -p` runs and can omit it after
   `/clear`; until the next switch, only the first check of that session can
@@ -85,4 +85,5 @@ some of what the patterns miss.
 | Codex live check after Claude Code support | Not yet run by hand; covered by the old-versus-new comparison above |
 | Voice handoff parsing | Covered by tests with synthetic events |
 | Live voice delivery | Not yet verified end to end |
-| Recommendation quality | Not yet compared against human labels; see the roadmap |
+| Recommendation quality | Defaults and routes checked on SWE-bench Verified: dev, held-out and confirmation sets of 50 tasks each, graded by the official harness ([benchmark](benchmark.md)) |
+| Saved-effort reading | Covered by tests with temporary settings files; Claude Code 2.1.283 hook payloads captured on 2026-09-28 carry neither model nor effort |

@@ -14,13 +14,11 @@ by default:
 | Latest prompt | 3,000 characters |
 | First task excerpt of the session | 1,200 characters |
 | Last four prompts | 1,000 characters each |
-| Current model and effort | as the host reports them, or `unknown` |
-| Previous suggestion | model and effort only |
 | Routing rubric | fixed text per host, the same for every user |
 
-In Claude Code, the current model is the ID recorded by the model-tracking
-hooks (below), and the effort is always `unknown` because Claude Code does not
-pass it to hooks.
+Your current model and effort are not sent. When the routes your
+`allowed_models` permits come down to one, as in Claude Code by default, the
+advisor makes no request at all.
 
 The request carries your API key as a bearer token. What TypeSafe keeps, and
 for how long, follows TypeSafe's terms for your account. Redirects are refused,
@@ -28,6 +26,14 @@ so the request cannot be forwarded to another host.
 
 Nothing else leaves your machine. The hook does not read source files, the
 full transcript, or tool output, and it has no telemetry.
+
+## Saved effort, read locally
+
+Neither host tells the hook your effort, so the advisor reads the level you
+saved: `model_reasoning_effort` at the top of `~/.codex/config.toml`, or
+`CLAUDE_CODE_EFFORT_LEVEL` and the `effortLevel` keys of
+`~/.claude/settings.json`. It opens the file read-only, keeps only that one
+value in memory for the check, and neither stores nor sends it.
 
 ## Model tracking in Claude Code
 

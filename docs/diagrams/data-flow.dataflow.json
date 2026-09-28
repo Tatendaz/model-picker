@@ -121,7 +121,7 @@
       "items": [
         "Latest prompt, up to 3,000 characters",
         "First task excerpt and the last four requests",
-        "Current model, effort and previous suggestion"
+        "Codex checks only; Claude Code sends nothing"
       ]
     },
     {
