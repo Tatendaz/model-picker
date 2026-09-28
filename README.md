@@ -76,9 +76,8 @@ Or paste this to Claude Code or Codex and let it do the install:
 The hook checks your first real prompt, any prompt that brings a new kind of
 scope (architecture, integration, migration, security, repeated failures), and
 every fourth prompt. It stays quiet for replies such as "ok", repeats, prompts
-within 30 seconds of a check, and, after the first check, suggestions that are
-not an upgrade. Each suggestion shows once, and at most one upgrade alert every
-15 minutes.
+within 30 seconds of a check, and non-upgrades after the first check. Each
+suggestion shows once, with at most one upgrade alert every 15 minutes.
 
 It never blocks your prompt: after the check (5-second timeout) the turn runs on
 the model you selected, so a suggestion applies to your next turn. In Claude
