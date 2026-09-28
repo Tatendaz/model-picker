@@ -143,6 +143,9 @@ def validate(value, allowed):
     reason = " ".join(reason.split())[:180]
     return {"model": value["model"], "effort": value["effort"], "reason": reason}
 
+class ConfigError(ValueError):
+    """A problem in the user's config. Its message is fixed local text, safe to show."""
+
 def unit_number(value):
     return not isinstance(value, bool) and isinstance(value, (int, float)) and math.isfinite(value) and 0 <= value <= 1
 
@@ -154,10 +157,11 @@ def allowed_routes(config, host):
         m not in models or not isinstance(e, list) or not e or any(x not in models[m] for x in e)
         for m, e in allowed.items()
     ):
-        raise ValueError("Invalid model allowlist")
+        raise ConfigError("allowed_models names a model or effort this host does not offer.")
     routes = [r for r in HOSTS[host]["routes"] if r["effort"] in allowed.get(r["model"], [])]
     if not routes:
-        raise ValueError("The allowlist leaves no route")
+        raise ConfigError("allowed_models leaves none of the suggested settings. Allow at least one of: "
+                          + ", ".join(label(r) for r in HOSTS[host]["routes"]) + ".")
     return routes, allowed
 
 def recommend(prompt, config, host="codex"):
@@ -169,7 +173,7 @@ def recommend(prompt, config, host="codex"):
     routes, allowed = allowed_routes(config, host)
     threshold = config.get("escalate_threshold", profile["escalate_threshold"])
     if not unit_number(threshold):
-        raise ValueError("escalate_threshold must be between 0 and 1")
+        raise ConfigError("escalate_threshold must be a number from 0 to 1.")
     if len(routes) == 1:
         # Nothing to choose between, so nothing is sent.
         result = validate(dict(routes[0], reason=routes[0]["description"]), allowed)
@@ -227,9 +231,10 @@ def configured_effort(host, model):
                 match = re.match(r"\s*model_reasoning_effort\s*=\s*[\"']([a-z]+)[\"']", line)
                 if match:
                     level = match.group(1)
-    except (OSError, ValueError, AttributeError):
+    except (OSError, ValueError, AttributeError, TypeError):
         return None
-    return level if level in EFFORT_RANK else None
+    # A list or object in the settings file is not an effort, and must not reach the dict lookup.
+    return level if isinstance(level, str) and level in EFFORT_RANK else None
 
 EFFORT_RANK = {"none": 0, "minimal": 0, "low": 1, "medium": 2, "high": 3, "xhigh": 4, "max": 5, "ultra": 6}
 SIGNALS = {
@@ -423,6 +428,12 @@ def run(event, force=False, host="codex"):
         saved["pending"] = 0
         try:
             decision = recommend(snapshot, config, host)
+        except ConfigError as error:
+            saved["last_status"] = "config_error"
+            if first or force:
+                return finish({"systemMessage": "Model advisor config problem: " + str(error)
+                               + " Your selection is unchanged."})
+            return finish()
         except Exception:
             saved["last_status"] = "provider_unavailable"
             if first or force:

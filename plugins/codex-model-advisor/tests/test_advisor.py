@@ -497,6 +497,18 @@ class ClaudeTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 a.recommend("x", {"allowed_models": allowed}, "claude")
 
+    def test_config_problems_are_named_not_reported_as_outages(self):
+        self.config_mock.return_value = {"allowed_models": {"claude-sonnet-5": ["medium"]}}
+        out = a.run(self.event, host="claude")
+        self.assertIn("Model advisor config problem: allowed_models leaves none of the suggested settings. "
+                      "Allow at least one of: claude-opus-5-5 / medium.", out["systemMessage"])
+        self.assertNotIn("unavailable", out["systemMessage"])
+        self.assertEqual(self.state()["last_status"], "config_error")
+        self.assertEqual(a.run(dict(self.event, prompt="Add a second feature"), host="claude"), {})
+        self.config_mock.return_value = {"escalate_threshold": "half"}
+        out = a.run(dict(self.event, prompt="model advisor recheck"), host="claude")
+        self.assertIn("escalate_threshold must be a number from 0 to 1.", out["systemMessage"])
+
     def test_saved_xhigh_effort_gets_a_savings_suggestion(self):
         self.start("claude-opus-5-5")
         self.saved_effort_mock.return_value = "xhigh"
@@ -547,6 +559,10 @@ class ClaudeTests(unittest.TestCase):
                     self.assertEqual(settings.stat().st_mtime_ns, before)
                 with patch.dict(os.environ, dict(env, CLAUDE_CODE_EFFORT_LEVEL="low"), clear=True):
                     self.assertEqual(a.configured_effort("claude", "claude-opus-5-5"), "low")
+                for odd in (["high"], {}, 3):
+                    settings.write_text(json.dumps({"effortLevel": odd}))
+                    with patch.dict(os.environ, env, clear=True):
+                        self.assertIsNone(a.configured_effort("claude", "claude-sonnet-5"))
                 settings.write_text("not json")
                 (codex_dir / "config.toml").write_text('model_reasoning_effort = "enormous"\n')
                 with patch.dict(os.environ, env, clear=True):

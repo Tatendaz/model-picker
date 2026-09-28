@@ -25,8 +25,9 @@ keep their defaults.
 `allowed_models` maps a model to its allowed efforts. It can only narrow the
 host's built-in list; an unknown model or effort makes every check fail. The
 advisor then suggests only the [routes](how-it-works.md#the-typesafe-request)
-your list allows. With one route left it asks TypeSafe nothing, and with none
-left every check fails. On a failed check, the hook still names the host's
+your list allows. With one route left it asks TypeSafe nothing. With none
+left, the first check of a session says which settings to allow instead of
+suggesting one. On a failed check, the hook still names the host's
 fixed baseline (Astra / medium or Opus / medium), even when your list leaves
 that pair out. For example, on an account without Astra this leaves Terra at
 high effort as the only suggestion:
