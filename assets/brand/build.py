@@ -13,11 +13,9 @@ Needs fonttools and Shantell Sans:
 """
 import os
 import sys
-from fontTools.ttLib import TTFont
-from fontTools.varLib import instancer
-from fontTools.pens.svgPathPen import SVGPathPen
-from fontTools.pens.transformPen import TransformPen
-from fontTools.misc.transform import Transform
+
+# fontTools is imported where it is used, so the geometry in this module can be
+# imported and tested without it.
 
 FONT  = "Shantell.ttf"
 LOC   = {"wght": 640, "BNCE": 45, "INFM": 35, "SPAC": 20}
@@ -30,6 +28,9 @@ KEY   = 11.0        # half-width of the die-cut edge
 # ---------------------------------------------------------------- type
 _cache = {}
 def _font():
+    from fontTools.ttLib import TTFont
+    from fontTools.varLib import instancer
+
     if FONT not in _cache:
         f = TTFont(FONT)
         axes = {a.axisTag for a in f["fvar"].axes}
@@ -38,6 +39,10 @@ def _font():
     return _cache[FONT]
 
 def glyphs(text, size, tracking=0.0, x=0.0, baseline=0.0):
+    from fontTools.misc.transform import Transform
+    from fontTools.pens.svgPathPen import SVGPathPen
+    from fontTools.pens.transformPen import TransformPen
+
     f = _font()
     upm = f["head"].unitsPerEm
     gs = f.getGlyphSet()
