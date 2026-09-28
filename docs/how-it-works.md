@@ -37,8 +37,9 @@ date. For the comparison with a suggestion, a release is ranked with its family,
 
 ## When a check runs
 
-A check means one request to TypeSafe. The hook makes one when any of these is
-true:
+A check means one recommendation: a TypeSafe request when two or more
+[routes](#the-typesafe-request) are allowed, or none when one is, as in Claude
+Code by default. The hook runs one when any of these is true:
 
 - It is the first substantive prompt of the session.
 - The prompt matches a scope category the session has not seen yet:
