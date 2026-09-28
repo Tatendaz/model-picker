@@ -1,20 +1,20 @@
 <div align="center">
 
-# 🔶 Model Picker
+<h1><picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/brand/lockup-dark.png">
+  <img src="assets/brand/lockup-light.png" width="380" alt="Model Picker">
+</picture></h1>
 
 **Model and effort suggestions for Codex and Claude Code that follow your task as it grows.**
 
-It suggests the settings that matched higher efforts on SWE-bench for less
-usage, asks TypeSafe's JEV model when a Codex task needs more, and tells you
-when yours costs more than needed. You switch; it never changes a setting.
+It suggests the settings that matched higher efforts on SWE-bench for less usage, asks TypeSafe's JEV
+model when a Codex task needs more, and tells you when yours costs more than needed. You switch; it never changes a setting.
 
-[![CI](https://github.com/Tatendaz/model-picker/actions/workflows/ci.yml/badge.svg)](https://github.com/Tatendaz/model-picker/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/license-MIT-111111.svg)](LICENSE) [![Python: stdlib only](https://img.shields.io/badge/python-3.9%2B%20·%20zero%20deps-3776AB.svg)](plugins/codex-model-advisor/scripts/advisor.py)
-[![Codex plugin](https://img.shields.io/badge/Codex-plugin-10a37f.svg)](https://learn.chatgpt.com/docs/hooks) [![Claude Code plugin](https://img.shields.io/badge/Claude%20Code-plugin-D97757.svg)](https://code.claude.com/docs/en/plugins)
+[![CI](https://github.com/Tatendaz/model-picker/actions/workflows/ci.yml/badge.svg)](https://github.com/Tatendaz/model-picker/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/license-MIT-111111.svg)](LICENSE) [![Python: stdlib only](https://img.shields.io/badge/python-3.9%2B%20·%20zero%20deps-3776AB.svg)](plugins/codex-model-advisor/scripts/advisor.py) [![Codex plugin](https://img.shields.io/badge/Codex-plugin-10a37f.svg)](https://learn.chatgpt.com/docs/hooks) [![Claude Code plugin](https://img.shields.io/badge/Claude%20Code-plugin-D97757.svg)](https://code.claude.com/docs/en/plugins)
 
 </div>
 
-With Opus 5.5 saved at xhigh in Claude Code, a session's first reply starts like this.
-[Benchmark](docs/benchmark.md): medium solved 47 of 50 tasks, xhigh 48, for 44% less usage.
+With Opus 5.5 saved at xhigh in Claude Code, a session's first reply starts like this ([benchmark](docs/benchmark.md)):
 
 > # 🔶 Model recommendation
 >
@@ -75,8 +75,8 @@ Or paste this to Claude Code or Codex and let it do the install:
 The hook checks your first real prompt, any prompt that brings a new kind of
 scope (architecture, integration, migration, security, repeated failures), and
 every fourth prompt. It stays quiet for replies such as "ok", repeats, prompts
-within 30 seconds of a check, and suggestions that match your current setting.
-Each suggestion shows once, and at most one alert every 15 minutes.
+within 30 seconds of a check, and suggestions that match your setting. Each
+suggestion shows once, and at most one alert every 15 minutes.
 
 It never blocks your prompt: after the check (5-second timeout) the turn runs on
 the model you selected, so a suggestion applies to your next turn. In Claude
@@ -89,8 +89,8 @@ Code, two local hooks track your active model. [Full rules](docs/how-it-works.md
   <img src="docs/diagrams/data-flow-light.svg" width="100%" alt="Data flow: your prompt and API key enter advisor.py. It writes bounded excerpts to local session state, sends a bounded snapshot with your API key over HTTPS to TypeSafe JEV, and shows only an allowlisted model and effort label in chat.">
 </picture>
 
-- **Sent to `api.typesafe.ai` under your key, Codex checks only:** the latest
-  prompt (3,000 characters), the first task excerpt and the last four requests.
+- **Sent to `api.typesafe.ai` under your key, Codex checks only:** the latest prompt
+  (3,000 characters), the first task excerpt and the last four requests.
 - **Kept locally:** session files, mode 0600, in `~/.codex` or `~/.claude`.
 - **Never read:** your source files or the full transcript. No telemetry.
 - **Off switch:** `"enabled": false` in the host's `model-advisor.json`.
@@ -98,9 +98,9 @@ Code, two local hooks track your active model. [Full rules](docs/how-it-works.md
 
 ## Limits
 
-No host lets this hook switch models: `UserPromptSubmit` has no model or effort
-output ([why](docs/limitations.md)). Hooks get no effort, so the advisor reads
-your saved level. No native Windows. Suggestions can be wrong for your work.
+No host lets this hook switch models: `UserPromptSubmit` has no model or effort output
+([why](docs/limitations.md)). Hooks get no effort, so the advisor reads your saved level. No native Windows.
+Suggestions can be wrong for your work.
 
 ## Documentation
 
@@ -111,10 +111,10 @@ your saved level. No native Windows. Suggestions can be wrong for your work.
 | [Privacy and trust](docs/privacy.md) | Data sent, local state, hook trust, credentials |
 | [Limitations](docs/limitations.md) | Automatic switching, what has been verified |
 | [Benchmark](docs/benchmark.md) | The SWE-bench runs behind the defaults and routes |
+| [Brand assets](assets/brand/README.md) | Logo files, colour, clearspace, how to redraw them |
 
-To uninstall, disable the plugin and delete the files in
-[Configuration](docs/configuration.md#uninstall). `make test` runs the suite with
-no network or key. [Diagram sources](docs/diagrams/README.md).
+To uninstall, disable the plugin and delete the files in [Configuration](docs/configuration.md#uninstall).
+`make test` runs the suite with no network or key. [Diagram sources](docs/diagrams/README.md).
 
 [Contributing](CONTRIBUTING.md) · [Security](SECURITY.md) · [Roadmap](ROADMAP.md) ·
 MIT © Tatenda Zhou · Not affiliated with OpenAI, Anthropic or TypeSafe.
