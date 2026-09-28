@@ -75,7 +75,7 @@ class AdvisorTests(unittest.TestCase):
 
     def test_mute_and_stronger_current_model(self):
         with patch.object(a, "recommend", return_value=dict(a.DEFAULT, reason="Routine")) as call:
-            self.assertEqual(a.run(dict(self.event, model="gpt-6-astra")), {})
+            self.assertIn(a.LIGHTER, a.run(dict(self.event, model="gpt-6-astra"))["systemMessage"])
             a.run(dict(self.event, prompt="/advisor mute"))
             self.assertEqual(a.run(dict(self.event, prompt="Architecture for production")), {})
             self.assertEqual(call.call_count, 1)
@@ -92,10 +92,44 @@ class AdvisorTests(unittest.TestCase):
     def test_known_effort_compared_without_guessing(self):
         decision = dict(a.DEFAULT, effort="high", reason="Difficult tradeoffs")
         with patch.object(a, "recommend", return_value=decision):
-            for effort in ["high", "xhigh"]:
-                self.assertEqual(a.run(dict(self.event, session_id=effort, model="gpt-5.6-terra", effort=effort)), {})
+            self.assertEqual(a.run(dict(self.event, session_id="high", model="gpt-5.6-terra", effort="high")), {})
+            message = a.run(dict(self.event, session_id="xhigh", model="gpt-5.6-terra", effort="xhigh"))["systemMessage"]
+            self.assertIn(a.LIGHTER, message)
             message = a.run(dict(self.event, session_id="medium", model="gpt-5.6-terra", effort="medium"))["systemMessage"]
             self.assertNotIn("unavailable", message)
+            self.assertNotIn(a.LIGHTER, message)
+
+    def test_first_check_suggests_lighter_setting(self):
+        event = dict(self.event, model="gpt-6-astra")
+        decision = dict(a.DEFAULT, reason="Routine")
+        with patch.object(a.time, "time", return_value=10000), patch.object(a, "recommend", return_value=decision):
+            out = a.run(event)
+        self.assertIn("gpt-5.6-terra / medium. ", out["systemMessage"])
+        self.assertIn(a.LIGHTER, out["systemMessage"])
+        self.assertIn("> " + a.LIGHTER, out["hookSpecificOutput"]["additionalContext"])
+        # Later checks only point up.
+        with patch.object(a.time, "time", return_value=10100), \
+                patch.object(a, "recommend", return_value=dict(decision, model="gpt-5.6-luna", effort="low")):
+            self.assertEqual(a.run(dict(event, prompt="Plan a database migration")), {})
+
+    def test_lighter_suggestion_can_be_disabled(self):
+        self.config_mock.return_value = {"suggest_lower": False}
+        with patch.object(a, "recommend", return_value=dict(a.DEFAULT, reason="Routine")):
+            self.assertEqual(a.run(dict(self.event, model="gpt-6-astra")), {})
+            self.assertIn(a.LIGHTER, a.run(dict(self.event, model="gpt-6-astra", prompt="model advisor recheck"))["systemMessage"])
+
+    def test_lighter_suggestion_leaves_cooldown_for_upgrades(self):
+        event = dict(self.event, model="gpt-6-astra")
+        with patch.object(a.time, "time", return_value=10000), \
+                patch.object(a, "recommend", return_value=dict(a.DEFAULT, reason="Routine")):
+            self.assertIn(a.LIGHTER, a.run(event)["systemMessage"])
+        # The user takes the advice; the task then grows within the cooldown window.
+        event["model"] = "gpt-5.6-terra"
+        with patch.object(a.time, "time", return_value=10100), \
+                patch.object(a, "recommend", return_value={"model": "gpt-5.6-sol", "effort": "high", "reason": "Complex"}):
+            out = a.run(dict(event, prompt="Production architecture"))
+        self.assertIn("gpt-5.6-sol / high", out["systemMessage"])
+        self.assertNotIn(a.LIGHTER, out["systemMessage"])
 
     def test_explicit_recheck_uses_previous_task(self):
         with patch.object(a, "recommend", return_value=dict(a.DEFAULT, reason="Routine")) as call:
@@ -344,10 +378,21 @@ class ClaudeTests(unittest.TestCase):
         self.assertEqual(self.state(), {"active_model": "claude-opus-5"})
 
     def test_model_ids_are_normalized(self):
-        for raw, expected in [("claude-opus-5[1m]", "claude-opus-5"), ("claude-haiku-4-5-20251001", "claude-haiku-4-5"),
+        for raw, expected in [("claude-opus-5[1m]", "claude-opus-5"), ("claude-opus-5-5[1m]", "claude-opus-5-5"),
+                              ("claude-haiku-4-5-20251001", "claude-haiku-4-5"),
                               ("opus", "claude-opus-5-5"), ("Claude-Sonnet-5", "claude-sonnet-5"),
                               ("claude-opus-4-8", "claude-opus-4-8"), ("", None), ("bad model", None), (None, None), (5, None)]:
             self.assertEqual(a.claude_model(raw), expected, raw)
+
+    def test_opus_5_5_long_context_session_gets_lighter_suggestion(self):
+        self.start("claude-opus-5-5[1m]")
+        self.assertEqual(self.state()["active_model"], "claude-opus-5-5")
+        with patch.object(a, "recommend", return_value={"model": "claude-sonnet-5", "effort": "medium", "reason": "Routine"}) as call:
+            out = a.run(self.event, host="claude")
+        self.assertEqual(call.call_args.args[0]["current_model"], "claude-opus-5-5")
+        self.assertIn(a.LIGHTER, out["systemMessage"])
+        self.assertIn("`/model sonnet` and `/effort medium`", out["hookSpecificOutput"]["additionalContext"])
+        self.assertNotIn("Current effort is unknown", out["hookSpecificOutput"]["additionalContext"])
 
     def test_newer_releases_rank_by_family(self):
         for raw, family in [("claude-opus-5-5", "claude-opus-5-5"), ("claude-opus-4-8", "claude-opus-5-5"),
@@ -358,7 +403,7 @@ class ClaudeTests(unittest.TestCase):
         self.start("claude-opus-5-5")
         with patch.object(a.time, "time", return_value=10000), \
                 patch.object(a, "recommend", return_value={"model": "claude-sonnet-5", "effort": "high", "reason": "Routine"}) as call:
-            self.assertEqual(a.run(self.event, host="claude"), {})
+            self.assertIn(a.LIGHTER, a.run(self.event, host="claude")["systemMessage"])
             self.assertEqual(call.call_args.args[0]["current_model"], "claude-opus-5-5")
         with patch.object(a.time, "time", return_value=10100), \
                 patch.object(a, "recommend", return_value={"model": "claude-fable-5-1", "effort": "high", "reason": "Hard"}):

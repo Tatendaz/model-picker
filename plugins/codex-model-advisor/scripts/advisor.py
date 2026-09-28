@@ -196,6 +196,7 @@ def recommend(prompt, config, host="codex"):
     return result
 
 EFFORT_RANK = {"none": 0, "minimal": 0, "low": 1, "medium": 2, "high": 3, "xhigh": 4, "max": 5, "ultra": 6}
+LIGHTER = "This task looks lighter than your current setting."
 SIGNALS = {
     "architecture": r"\b(architect(?:ure|ural)?|system design|design decision|trade-?offs?)\b",
     "integration": r"\b(integrat(?:e|ion|ing)|connect.*(?:service|api)|production|prod app)\b",
@@ -406,16 +407,21 @@ def run(event, force=False, host="codex"):
                 "Model Advisor completed with an uncertain result. Report the following and do not rerun the check: " + message}})
         target = decision["model"] + "/" + decision["effort"]
         effort_unknown = False
+        lighter = False
         if ranked in model_rank:
             upgrade = model_rank[decision["model"]] > model_rank[ranked]
+            lighter = model_rank[decision["model"]] < model_rank[ranked]
             if decision["model"] == ranked and current_effort in EFFORT_RANK:
                 upgrade = EFFORT_RANK[decision["effort"]] > EFFORT_RANK[current_effort]
+                lighter = EFFORT_RANK[decision["effort"]] < EFFORT_RANK[current_effort]
             elif decision["model"] == ranked and (EFFORT_RANK.get(decision["effort"], 0)
                                                    > EFFORT_RANK[assumed_effort(profile, current)]):
                 # Missing effort is not evidence that a higher effort is already selected.
                 effort_unknown = True
                 upgrade = True
-            if not upgrade and not force:
+            # Only the first check may point down; later checks follow the task as it grows.
+            suggest_lower = first and config.get("suggest_lower", True) is not False
+            if not (upgrade or force or (lighter and suggest_lower)):
                 return finish()
         elif not first and not force:
             # Unknown active model: cannot reliably claim an upgrade.
@@ -423,15 +429,20 @@ def run(event, force=False, host="codex"):
         if not force and (target in saved.get("notified", []) or
                 now - saved.get("last_alert", 0) < max(0, int(config.get("cooldown_seconds", 900)))):
             return finish()
-        saved["last_alert"] = now
+        # A lighter suggestion leaves the cooldown alone, so a later upgrade still shows.
+        if not lighter:
+            saved["last_alert"] = now
         saved["notified"] = (saved.get("notified", []) + [target])[-12:]
         message = "Model suggestion: " + label(decision) + ". " + decision["reason"]
+        if lighter:
+            message += " " + LIGHTER
         if effort_unknown:
             message += " Current effort is unavailable; use " + decision["effort"] + " effort if you are not already."
         message += " " + switch_hint(decision, host, False) + " No settings were changed. " + profile["mute"]
         # Only allowlisted labels enter model context, never provider prose or task excerpts.
         callout = ("> # 🔶 Model recommendation\n>\n> ---\n>\n> JEV recommends **"
                    + label(decision) + "**.\n>\n"
+                   + ("> " + LIGHTER + "\n>\n" if lighter else "")
                    + ("> Current effort is unknown; this may already match your selection.\n>\n" if effort_unknown else "")
                    + "> " + switch_hint(decision, host, True) + " **No settings were changed.**")
         notice = ("Model Advisor completed this turn. Show the following Markdown blockquote "
