@@ -22,3 +22,7 @@ do NOT add dependabot[bot] to CodeRabbit ignore lists; remove it if you already 
 - Coordinator decision: "Delete .github/workflows/dependabot-auto-merge.yml in every hardening
   PR (it merges Dependabot PRs with no review; merge-when-clean v2 covers Dependabot now)."
   Deleted it.
+- CI went red on `Tests (py3.9, ubuntu-latest)`: "The version '3.9' with architecture 'x64' was
+  not found for Ubuntu 26.04." Main last passed on 2026-10-19. Added a `runner` matrix field so
+  that one entry runs on `ubuntu-24.04` (actions/python-versions ships 3.9.25 for 22.04 and
+  24.04) without renaming the required check.

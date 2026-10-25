@@ -29,7 +29,9 @@ defaults:
 jobs:
   tests:
     name: Tests (py${{ matrix.python-version }}, ${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
+    # `runner` overrides the machine without renaming the job: the branch rule requires
+    # these exact check names.
+    runs-on: ${{ matrix.runner || matrix.os }}
     timeout-minutes: 10
     strategy:
       fail-fast: false
@@ -37,6 +39,11 @@ jobs:
         os: [ubuntu-latest]
         python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
         include:
+          # ubuntu-latest is Ubuntu 26.04, which has no Python 3.9 build;
+          # actions/python-versions ships 3.9 for 22.04 and 24.04 only.
+          - os: ubuntu-latest
+            python-version: "3.9"
+            runner: ubuntu-24.04
           # The hook runs under whatever `python3` Codex finds. On macOS that
           # can be the Command Line Tools 3.9, so macOS covers both ends.
           - os: macos-latest

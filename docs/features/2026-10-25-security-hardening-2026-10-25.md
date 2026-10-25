@@ -25,6 +25,10 @@ Slower, safer dependency updates and a workflow security scan in CI.
   PRs on green CI with no review. `merge-when-clean.yml` now covers Dependabot PRs, skips
   major updates, and requires a real review.
 
+- `ci.yml`: `Tests (py3.9, ubuntu-latest)` now runs on `ubuntu-24.04`. `ubuntu-latest` moved
+  to Ubuntu 26.04, which has no Python 3.9 build, so the job failed on every PR. The job name
+  stays the same because the branch rule requires it.
+
 ## Motivation
 
 This month's malware shipped as new versions of trusted packages. A 7-day cooldown
