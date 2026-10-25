@@ -1,12 +1,18 @@
 # The plugin has no package dependencies. This keeps the SHA-pinned GitHub
 # Actions current; an outdated pin is how the Node 20 deprecation warning
 # reached this repo's CI.
+# Monthly, with a 7-day cooldown so a fresh (possibly hijacked) release is never
+# picked up on day one. Security updates ignore the cooldown.
 version: 2
 updates:
   - package-ecosystem: github-actions
     directory: /
     schedule:
-      interval: weekly
+      interval: monthly
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 3
     groups:
       actions:
         patterns: ["*"]
+        update-types: [minor, patch]

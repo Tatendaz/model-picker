@@ -1,0 +1,41 @@
+name: zizmor
+
+# Static security scan of the workflows themselves (unpinned actions, template
+# injection, over-broad tokens). Fails on high-severity findings.
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  zizmor:
+    name: zizmor (workflow security)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.13"
+
+      - name: Install zizmor (pinned by hash)
+        run: |
+          python -m pip install --quiet --disable-pip-version-check \
+            --only-binary=:all: --require-hashes -r .github/zizmor-requirements.txt
+
+      # The read-only token turns on zizmor's online audits (impostor commits,
+      # known-vulnerable actions). --strict-collection fails on a workflow it can't parse.
+      - name: Scan workflows
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: zizmor --strict-collection --min-severity high .github/workflows
