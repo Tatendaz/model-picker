@@ -20,6 +20,9 @@ Slower, safer dependency updates and a workflow security scan in CI.
   review ran on the head (CodeRabbit "Review completed" or `review-failover` success) and
   0 threads are open. Merges made with `GITHUB_TOKEN` start no other workflows.
 - `dependency-review.yml`: the pin comment now says `v5.0.0`, the tag the SHA points to.
+- Removed `.github/workflows/dependabot-auto-merge.yml`: it merged Dependabot patch and minor
+  PRs on green CI with no review. `merge-when-clean.yml` now covers Dependabot PRs, skips
+  major updates, and requires a real review.
 
 ## Motivation
 

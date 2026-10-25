@@ -19,3 +19,6 @@ do NOT add dependabot[bot] to CodeRabbit ignore lists; remove it if you already 
   actionlint caught a YAML error (`:all: ` read as a mapping) that zizmor skipped silently.
 - Removed `.coderabbit.yaml` (it only held the Dependabot ignore) and added
   `merge-when-clean.yml` byte-identical to the template.
+- Coordinator decision: "Delete .github/workflows/dependabot-auto-merge.yml in every hardening
+  PR (it merges Dependabot PRs with no review; merge-when-clean v2 covers Dependabot now)."
+  Deleted it.
