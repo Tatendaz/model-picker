@@ -15,8 +15,10 @@ Slower, safer dependency updates and a workflow security scan in CI.
 - `.github/workflows/zizmor.yml`: scans `.github/workflows` on every PR and push to
   `main`, fails on high findings. zizmor 1.31.1 is installed from hash-pinned wheels
   (`.github/zizmor-requirements.txt`).
-- `.coderabbit.yaml`: skip automatic CodeRabbit reviews on Dependabot PRs
-  (`inheritance: true` keeps the web UI settings).
+- `.github/workflows/merge-when-clean.yml` (shared template, unchanged): merges Dependabot
+  PRs and the owner's `security/*` or `automerge`-labelled PRs once CI is green, a real
+  review ran on the head (CodeRabbit "Review completed" or `review-failover` success) and
+  0 threads are open. Merges made with `GITHUB_TOKEN` start no other workflows.
 - `dependency-review.yml`: the pin comment now says `v5.0.0`, the tag the SHA points to.
 
 ## Motivation
@@ -28,3 +30,5 @@ and template injection before they merge.
 ## Not done
 
 - No package-manager cooldown: the plugin has no package dependencies.
+- Dependabot PRs are not added to a CodeRabbit ignore list: they need CodeRabbit's
+  auto-review (or its rate-limit failover) so the merge job can merge them.
