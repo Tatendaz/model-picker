@@ -12,8 +12,9 @@ Slower, safer dependency updates and a workflow security scan in CI.
 - `.github/dependabot.yml`: monthly instead of weekly, `cooldown: default-days: 7`,
   `open-pull-requests-limit: 3`, and the actions group limited to minor and patch
   updates. Security updates ignore the cooldown.
-- `.github/workflows/zizmor.yml`: scans `.github/workflows` on every PR and push to
-  `main`, fails on high findings. zizmor 1.31.1 is installed from hash-pinned wheels
+- `.github/workflows/zizmor.yml`: scans `.github/workflows` on every pull request targeting
+  `main` and every push to `main`, fails on high findings or on a workflow it can't parse.
+  The read-only token turns on online audits (impostor commits, known-vulnerable actions). zizmor 1.31.1 is installed from hash-pinned wheels
   (`.github/zizmor-requirements.txt`).
 - `.github/workflows/merge-when-clean.yml` (shared template, unchanged): merges Dependabot
   PRs and the owner's `security/*` or `automerge`-labelled PRs once CI is green, a real
